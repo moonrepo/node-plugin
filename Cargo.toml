@@ -1,0 +1,8 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+
+[workspace.dependencies]
+extism-pdk = "0.3.3"
+proto_pdk = "0.1.0"
+serde = "1.0.167"
