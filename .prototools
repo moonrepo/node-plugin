@@ -1,2 +1,5 @@
 [plugins]
 node-test = "source:target/wasm32-wasi/debug/node_plugin.wasm"
+npm-test = "source:target/wasm32-wasi/debug/node_depman_plugin.wasm"
+pnpm-test = "source:target/wasm32-wasi/debug/node_depman_plugin.wasm"
+yarn-test = "source:target/wasm32-wasi/debug/node_depman_plugin.wasm"

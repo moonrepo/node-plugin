@@ -1,5 +1,5 @@
-use crate::node::PackageJson;
 use extism_pdk::*;
+use node_common::PackageJson;
 use proto_pdk::*;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -93,7 +93,7 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
         } else {
             format!("bin/{}", BIN).into()
         }),
-        globals_lookup_dirs: vec!["$TOOL_DIR/../globals/bin".into()],
+        globals_lookup_dirs: vec!["$PROTO_ROOT/tools/node/globals/bin".into()],
     }))
 }
 

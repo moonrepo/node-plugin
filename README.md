@@ -14,4 +14,5 @@ Test the plugin by running `proto` commands. Requires proto >= v0.12.
 
 ```shell
 proto install node-test
+proto list-remote npm-test
 ```
