@@ -1,7 +1,6 @@
 use extism_pdk::*;
-use node_common::PackageJson;
+use node_common::{NodeDistLTS, NodeDistVersion, PackageJson};
 use proto_pdk::*;
-use serde::Deserialize;
 use std::collections::HashMap;
 
 static NAME: &str = "Node.js";
@@ -97,26 +96,13 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
     }))
 }
 
-#[derive(Deserialize)]
-#[serde(untagged)]
-enum NodeDistLTS {
-    Name(String),
-    State(bool),
-}
-
-#[derive(Deserialize)]
-struct NodeDistVersion {
-    lts: NodeDistLTS,
-    version: String,
-}
-
 #[plugin_fn]
 pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
     let response: Vec<NodeDistVersion> = fetch_url("https://nodejs.org/dist/index.json")?;
 
     for (index, item) in response.iter().enumerate() {
-        let version = Version::parse(&item.version[1..])?; // Starts with v
+        let version = Version::parse(&item.version[1..])?;
 
         // First item is always the latest
         if index == 0 {
@@ -197,9 +183,9 @@ pub fn parse_version_file(
     let mut version = None;
 
     if input.file == "package.json" {
-        let json: PackageJson = json::from_str(&input.content)?;
+        let package_json: PackageJson = json::from_str(&input.content)?;
 
-        if let Some(engines) = json.engines {
+        if let Some(engines) = package_json.engines {
             if let Some(constraint) = engines.get(BIN) {
                 version = Some(constraint.to_owned());
             }
