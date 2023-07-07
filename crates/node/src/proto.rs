@@ -152,10 +152,13 @@ pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<Create
 
     global_shims.insert(
         "npx".into(),
-        if input.env.os == HostOS::Windows {
-            "npx.cmd".into()
-        } else {
-            "bin/npx".into()
+        ShimConfig {
+            bin_path: Some(if input.env.os == HostOS::Windows {
+                "npx.cmd".into()
+            } else {
+                "bin/npx".into()
+            }),
+            ..ShimConfig::default()
         },
     );
 

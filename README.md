@@ -4,13 +4,13 @@ Node.js, npm, pnpm, and yarn WASM plugins for [proto](https://github.com/moonrep
 
 ## Contributing
 
-Build the plugin:
+Build the plugins:
 
 ```shell
 cargo build --target wasm32-wasi
 ```
 
-Test the plugin by running `proto` commands. Requires proto >= v0.12.
+Test the plugins by running `proto` commands. Requires proto >= v0.12.
 
 ```shell
 proto install node-test

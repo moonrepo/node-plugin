@@ -4,7 +4,6 @@ use proto_pdk::*;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
-use std::path::PathBuf;
 use std::process::Command;
 
 static mut NAME: &str = "npm";
@@ -75,11 +74,11 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
         if let Some(bin_field) = package_json.bin {
             match bin_field {
                 BinField::String(bin) => {
-                    bin_path = Some(PathBuf::from(bin));
+                    bin_path = Some(bin);
                 }
                 BinField::Object(map) => {
                     if let Some(bin) = map.get(get_package_name()) {
-                        bin_path = Some(PathBuf::from(bin));
+                        bin_path = Some(bin.to_owned());
                     }
                 }
             };
@@ -87,17 +86,20 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
 
         if bin_path.is_none() {
             if let Some(main_field) = package_json.main {
-                bin_path = Some(PathBuf::from(main_field));
+                bin_path = Some(main_field);
             }
         }
     }
 
     if bin_path.is_none() {
-        bin_path = Some(PathBuf::from("bin").join(if is_pnpm() {
-            "pnpm.cjs"
-        } else {
-            get_package_name()
-        }));
+        bin_path = Some(format!(
+            "bin/{}",
+            if is_pnpm() {
+                "pnpm.cjs"
+            } else {
+                get_package_name()
+            }
+        ));
     }
 
     Ok(Json(LocateBinsOutput {
@@ -192,22 +194,65 @@ pub fn resolve_version(
 
 #[plugin_fn]
 pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
-    let mut global_shims = HashMap::<String, String>::new();
+    let mut global_shims = HashMap::<String, ShimConfig>::new();
+    let mut local_shims = HashMap::<String, ShimConfig>::new();
 
     match get_package_name() {
         "npm" => {
+            local_shims.insert(
+                "npm".into(),
+                ShimConfig {
+                    bin_path: Some("bin/npm-cli.js".into()),
+                    parent_bin: Some("node".into()),
+                    ..ShimConfig::default()
+                },
+            );
+
             // node-gyp
             global_shims.insert(
                 "node-gyp".into(),
-                if input.env.os == HostOS::Windows {
-                    "bin/node-gyp-bin/node-gyp.cmd".into()
-                } else {
-                    "bin/node-gyp-bin/node-gyp".into()
+                ShimConfig {
+                    bin_path: Some(if input.env.os == HostOS::Windows {
+                        "bin/node-gyp-bin/node-gyp.cmd".into()
+                    } else {
+                        "bin/node-gyp-bin/node-gyp".into()
+                    }),
+                    ..ShimConfig::default()
                 },
             );
         }
-        "pnpm" => {}
-        "yarn" => {}
+        "pnpm" => {
+            local_shims.insert(
+                "pnpm".into(),
+                ShimConfig {
+                    bin_path: Some("bin/pnpm.cjs".into()),
+                    parent_bin: Some("node".into()),
+                    ..ShimConfig::default()
+                },
+            );
+
+            // pnpx
+            global_shims.insert(
+                "pnpx".into(),
+                ShimConfig {
+                    before_args: Some("dlx".into()),
+                    ..ShimConfig::default()
+                },
+            );
+        }
+        "yarn" => {
+            local_shims.insert(
+                "yarn".into(),
+                ShimConfig {
+                    bin_path: Some("bin/yarn.js".into()),
+                    parent_bin: Some("node".into()),
+                    ..ShimConfig::default()
+                },
+            );
+
+            // yarnpkg
+            global_shims.insert("yarnpkg".into(), ShimConfig::default());
+        }
         _ => {}
     };
 
@@ -217,7 +262,7 @@ pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<Create
             ..ShimConfig::default()
         }),
         global_shims,
-        ..CreateShimsOutput::default()
+        local_shims,
     }))
 }
 
