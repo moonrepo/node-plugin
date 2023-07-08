@@ -132,9 +132,15 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
         output.versions.push(Version::parse(&item.version)?);
     }
 
-    // Always includes latest
+    // Dist tags always includes latest
     for (alias, version) in response.dist_tags {
-        output.aliases.insert(alias, Version::parse(&version)?);
+        let version = Version::parse(&version)?;
+
+        if alias == "latest" {
+            output.latest = Some(version.clone());
+        }
+
+        output.aliases.insert(alias, version);
     }
 
     Ok(Json(output))
