@@ -4,7 +4,12 @@ use proto_pdk::*;
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fs;
-use std::process::Command;
+
+#[host_fn]
+extern "ExtismHost" {
+    fn trace(input: Json<TraceInput>);
+    fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
+}
 
 static mut NAME: &str = "npm";
 static mut BIN: &str = "npm";
@@ -104,6 +109,7 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
 
     Ok(Json(LocateBinsOutput {
         bin_path,
+        fallback_last_globals_dir: true,
         globals_lookup_dirs: vec!["$PROTO_ROOT/tools/node/globals/bin".into()],
     }))
 }
@@ -123,7 +129,7 @@ struct RegistryResponse {
 #[plugin_fn]
 pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
-    let response: RegistryResponse = fetch_url(format!(
+    let response: RegistryResponse = fetch_url_with_cache(format!(
         "https://registry.npmjs.org/{}/",
         get_package_name()
     ))?;
@@ -158,11 +164,11 @@ pub fn resolve_version(
         "npm" => {
             if input.initial == "bundled" {
                 let node_version =
-                    String::from_utf8(Command::new("node").arg("--version").output()?.stdout)?;
-                let node_version = node_version.trim(); // Has v prefix
+                    unsafe { exec_command(Json(ExecCommandInput::new("node", ["--version"])))?.0 };
+                let node_version = node_version.stdout.trim(); // Has v prefix
 
                 let response: Vec<NodeDistVersion> =
-                    fetch_url("https://nodejs.org/dist/index.json")?;
+                    fetch_url_with_cache("https://nodejs.org/dist/index.json")?;
 
                 for node_release in response {
                     if node_release.version == node_version {
@@ -172,7 +178,11 @@ pub fn resolve_version(
                 }
 
                 if output.candidate.is_none() {
-                    // debug!("Could not find a bundled npm version for Node.js {}, falling back to latest", node_version);
+                    unsafe {
+                        trace(Json(
+                            format!("Could not find a bundled npm version for Node.js {}, falling back to latest", node_version).into()
+                        ))?;
+                    }
 
                     output.candidate = Some("latest".into());
                 }
@@ -186,7 +196,12 @@ pub fn resolve_version(
         // Because of this, we need to always install the v1 package!
         "yarn" => {
             if !input.initial.starts_with('1') {
-                // debug!("Found Yarn v2+, installing latest v1 from registry for compatibility");
+                unsafe {
+                    trace(Json(
+                        "Found Yarn v2+, installing latest v1 from registry for compatibility"
+                            .into(),
+                    ))?;
+                }
 
                 output.candidate = Some("1.22.19".into())
             }
@@ -207,53 +222,32 @@ pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<Create
         "npm" => {
             local_shims.insert(
                 "npm".into(),
-                ShimConfig {
-                    bin_path: Some("bin/npm-cli.js".into()),
-                    parent_bin: Some("node".into()),
-                    ..ShimConfig::default()
-                },
+                ShimConfig::local_with_parent("bin/npm-cli.js", "node"),
             );
 
             // node-gyp
             global_shims.insert(
                 "node-gyp".into(),
-                ShimConfig {
-                    bin_path: Some(if input.env.os == HostOS::Windows {
-                        "bin/node-gyp-bin/node-gyp.cmd".into()
-                    } else {
-                        "bin/node-gyp-bin/node-gyp".into()
-                    }),
-                    ..ShimConfig::default()
-                },
+                ShimConfig::global_with_alt_bin(if input.env.os == HostOS::Windows {
+                    "bin/node-gyp-bin/node-gyp.cmd"
+                } else {
+                    "bin/node-gyp-bin/node-gyp"
+                }),
             );
         }
         "pnpm" => {
             local_shims.insert(
                 "pnpm".into(),
-                ShimConfig {
-                    bin_path: Some("bin/pnpm.cjs".into()),
-                    parent_bin: Some("node".into()),
-                    ..ShimConfig::default()
-                },
+                ShimConfig::local_with_parent("bin/pnpm.cjs", "node"),
             );
 
             // pnpx
-            global_shims.insert(
-                "pnpx".into(),
-                ShimConfig {
-                    before_args: Some("dlx".into()),
-                    ..ShimConfig::default()
-                },
-            );
+            global_shims.insert("pnpx".into(), ShimConfig::global_with_sub_command("dlx"));
         }
         "yarn" => {
             local_shims.insert(
                 "yarn".into(),
-                ShimConfig {
-                    bin_path: Some("bin/yarn.js".into()),
-                    parent_bin: Some("node".into()),
-                    ..ShimConfig::default()
-                },
+                ShimConfig::local_with_parent("bin/yarn.js", "node"),
             );
 
             // yarnpkg

@@ -32,7 +32,7 @@ fn map_arch(os: HostOS, arch: HostArch) -> Result<String, PluginError> {
         other => {
             return Err(PluginError::UnsupportedArchitecture {
                 tool: NAME.into(),
-                arch: format!("{:?}", other),
+                arch: other.to_string(),
             });
         }
     };
@@ -64,7 +64,7 @@ pub fn download_prebuilt(
         other => {
             return Err(PluginError::UnsupportedPlatform {
                 tool: NAME.into(),
-                platform: format!("{:?}", other),
+                platform: other.to_string(),
             })?;
         }
     };
@@ -88,10 +88,11 @@ pub fn download_prebuilt(
 pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
     Ok(Json(LocateBinsOutput {
         bin_path: Some(if input.env.os == HostOS::Windows {
-            format!("{}.exe", BIN).into()
+            format!("{}.exe", BIN)
         } else {
-            format!("bin/{}", BIN).into()
+            BIN.to_owned()
         }),
+        fallback_last_globals_dir: true,
         globals_lookup_dirs: vec!["$PROTO_ROOT/tools/node/globals/bin".into()],
     }))
 }
@@ -99,7 +100,8 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
 #[plugin_fn]
 pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
-    let response: Vec<NodeDistVersion> = fetch_url("https://nodejs.org/dist/index.json")?;
+    let response: Vec<NodeDistVersion> =
+        fetch_url_with_cache("https://nodejs.org/dist/index.json")?;
 
     for (index, item) in response.iter().enumerate() {
         let version = Version::parse(&item.version[1..])?;
@@ -152,14 +154,11 @@ pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<Create
 
     global_shims.insert(
         "npx".into(),
-        ShimConfig {
-            bin_path: Some(if input.env.os == HostOS::Windows {
-                "npx.cmd".into()
-            } else {
-                "bin/npx".into()
-            }),
-            ..ShimConfig::default()
-        },
+        ShimConfig::global_with_alt_bin(if input.env.os == HostOS::Windows {
+            "npx.cmd"
+        } else {
+            "bin/npx"
+        }),
     );
 
     Ok(Json(CreateShimsOutput {
