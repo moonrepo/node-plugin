@@ -55,7 +55,11 @@ pub fn download_prebuilt(
     let prefix = match input.env.os {
         HostOS::Linux => format!("node-v{version}-linux-{arch}"),
         HostOS::MacOS => {
-            let parsed_version = Version::parse(&version)?;
+            let parsed_version = if version == "latest" {
+                Version::new(20, 0, 0) // Doesn't matter
+            } else {
+                Version::parse(&version)?
+            };
 
             // Arm64 support was added after v16, but M1/M2 machines can
             // run x64 binaries via Rosetta. This is a compat hack!
@@ -127,6 +131,10 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
 
         output.versions.push(version);
     }
+
+    output
+        .aliases
+        .insert("latest".into(), output.latest.clone().unwrap());
 
     Ok(Json(output))
 }
