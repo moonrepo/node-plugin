@@ -39,6 +39,16 @@ fn map_arch(os: HostOS, arch: HostArch) -> Result<String, PluginError> {
 pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
+    check_supported_os_and_arch(
+        NAME,
+        &input.env,
+        permutations! [
+            HostOS::Linux => [HostArch::X64, HostArch::Arm64, HostArch::Arm, HostArch::Powerpc64, HostArch::S390x],
+            HostOS::MacOS => [HostArch::X64, HostArch::Arm64],
+            HostOS::Windows => [HostArch::X64, HostArch::X86, HostArch::Arm64],
+        ],
+    )?;
+
     let version = input.env.version;
     let arch = map_arch(input.env.os, input.env.arch)?;
 
@@ -77,7 +87,11 @@ pub fn download_prebuilt(
 #[plugin_fn]
 pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
     Ok(Json(LocateBinsOutput {
-        bin_path: Some(format_bin_name(BIN, input.env.os)),
+        bin_path: Some(if input.env.os == HostOS::Windows {
+            "node.exe".into()
+        } else {
+            "bin/node".into()
+        }),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec!["$PROTO_ROOT/tools/node/globals/bin".into()],
     }))
