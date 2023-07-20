@@ -29,12 +29,7 @@ fn map_arch(os: HostOS, arch: HostArch) -> Result<String, PluginError> {
         HostArch::S390x => "s390x".into(),
         HostArch::X64 => "x64".into(),
         HostArch::X86 => "x86".into(),
-        other => {
-            return Err(PluginError::UnsupportedArchitecture {
-                tool: NAME.into(),
-                arch: other.to_string(),
-            });
-        }
+        _ => unreachable!(),
     };
 
     Ok(arch)
@@ -61,12 +56,7 @@ pub fn download_prebuilt(
             }
         }
         HostOS::Windows => format!("node-v{version}-win-{arch}"),
-        other => {
-            return Err(PluginError::UnsupportedPlatform {
-                tool: NAME.into(),
-                platform: other.to_string(),
-            })?;
-        }
+        _ => unreachable!(),
     };
 
     let filename = if input.env.os == HostOS::Windows {
@@ -87,11 +77,7 @@ pub fn download_prebuilt(
 #[plugin_fn]
 pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
     Ok(Json(LocateBinsOutput {
-        bin_path: Some(if input.env.os == HostOS::Windows {
-            format!("{}.exe", BIN)
-        } else {
-            BIN.to_owned()
-        }),
+        bin_path: Some(format_bin_name(BIN, input.env.os)),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec!["$PROTO_ROOT/tools/node/globals/bin".into()],
     }))
@@ -180,8 +166,8 @@ pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
 
 #[plugin_fn]
 pub fn parse_version_file(
-    Json(input): Json<ParseVersionInput>,
-) -> FnResult<Json<ParseVersionOutput>> {
+    Json(input): Json<ParseVersionFileInput>,
+) -> FnResult<Json<ParseVersionFileOutput>> {
     let mut version = None;
 
     if input.file == "package.json" {
@@ -196,5 +182,5 @@ pub fn parse_version_file(
         version = Some(input.content.trim().to_owned());
     }
 
-    Ok(Json(ParseVersionOutput { version }))
+    Ok(Json(ParseVersionFileOutput { version }))
 }
