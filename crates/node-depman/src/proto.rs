@@ -80,6 +80,7 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
     // Extract the binary from the `package.json`
     if package_path.exists() {
         let package_json: PackageJson = json::from_slice(&fs::read(package_path)?)?;
+        let package_name = manager.to_string();
 
         if let Some(bin_field) = package_json.bin {
             match bin_field {
@@ -87,7 +88,7 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
                     bin_path = Some(bin);
                 }
                 BinField::Object(map) => {
-                    if let Some(bin) = map.get(&manager.to_string()) {
+                    if let Some(bin) = map.get(&package_name) {
                         bin_path = Some(bin.to_owned());
                     }
                 }

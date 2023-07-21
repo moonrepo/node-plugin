@@ -1,14 +1,14 @@
 use serde::Deserialize;
 use std::collections::HashMap;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(untagged)]
 pub enum BinField {
     String(String),
     Object(HashMap<String, String>),
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 pub struct PackageJson {
     pub bin: Option<BinField>,
 
