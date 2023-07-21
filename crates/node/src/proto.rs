@@ -92,9 +92,9 @@ pub fn download_prebuilt(
 pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
     Ok(Json(LocateBinsOutput {
         bin_path: Some(if input.env.os == HostOS::Windows {
-            "node.exe".into()
+            format!("{}.exe", BIN)
         } else {
-            "bin/node".into()
+            format!("bin/{}", BIN)
         }),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec!["$PROTO_ROOT/tools/node/globals/bin".into()],

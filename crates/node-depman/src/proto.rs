@@ -3,6 +3,7 @@ use node_common::{BinField, NodeDistVersion, PackageJson};
 use proto_pdk::*;
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::fmt;
 use std::fs;
 
 #[host_fn]
@@ -11,39 +12,39 @@ extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
 }
 
-static mut NAME: &str = "npm";
-static mut BIN: &str = "npm";
-
-fn is_pnpm() -> bool {
-    unsafe { BIN == "pnpm" }
+#[derive(PartialEq)]
+enum PackageManager {
+    Npm,
+    Pnpm,
+    Yarn,
 }
 
-fn is_yarn() -> bool {
-    unsafe { BIN == "yarn" }
+impl fmt::Display for PackageManager {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            PackageManager::Npm => write!(f, "npm"),
+            PackageManager::Pnpm => write!(f, "pnpm"),
+            PackageManager::Yarn => write!(f, "yarn"),
+        }
+    }
 }
 
-fn get_package_name() -> &'static str {
-    unsafe { NAME }
+fn get_package_manager(env: &Environment) -> PackageManager {
+    if env.id.to_lowercase().contains("yarn") {
+        PackageManager::Yarn
+    } else if env.id.to_lowercase().contains("pnpm") {
+        PackageManager::Pnpm
+    } else {
+        PackageManager::Npm
+    }
 }
 
 #[plugin_fn]
 pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
-    let name = if input.id.to_lowercase().contains("yarn") {
-        "yarn"
-    } else if input.id.to_lowercase().contains("pnpm") {
-        "pnpm"
-    } else {
-        "npm"
-    };
-
-    // This is safe since this function is only called once!
-    unsafe {
-        NAME = name;
-        BIN = name;
-    }
+    let manager = get_package_manager(&input.env);
 
     Ok(Json(ToolMetadataOutput {
-        name: name.into(),
+        name: manager.to_string(),
         type_of: PluginType::DependencyManager,
         env_vars: vec![],
     }))
@@ -53,16 +54,19 @@ pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<Tool
 pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
-    let name = get_package_name();
+    let manager = get_package_manager(&input.env);
     let version = input.env.version;
 
     Ok(Json(DownloadPrebuiltOutput {
-        archive_prefix: Some(if is_yarn() {
+        archive_prefix: Some(if manager == PackageManager::Yarn {
             format!("yarn-v{version}")
         } else {
             "package".into()
         }),
-        download_url: format!("https://registry.npmjs.org/{name}/-/{name}-{version}.tgz"),
+        download_url: format!(
+            "https://registry.npmjs.org/{name}/-/{name}-{version}.tgz",
+            name = manager.to_string()
+        ),
         ..DownloadPrebuiltOutput::default()
     }))
 }
@@ -71,6 +75,7 @@ pub fn download_prebuilt(
 pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
     let mut bin_path = None;
     let package_path = input.tool_dir.join("package.json");
+    let manager = get_package_manager(&input.env);
 
     // Extract the binary from the `package.json`
     if package_path.exists() {
@@ -82,7 +87,7 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
                     bin_path = Some(bin);
                 }
                 BinField::Object(map) => {
-                    if let Some(bin) = map.get(get_package_name()) {
+                    if let Some(bin) = map.get(&manager.to_string()) {
                         bin_path = Some(bin.to_owned());
                     }
                 }
@@ -99,10 +104,10 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
     if bin_path.is_none() {
         bin_path = Some(format!(
             "bin/{}",
-            if is_pnpm() {
-                "pnpm.cjs"
+            if manager == PackageManager::Pnpm {
+                "pnpm.cjs".to_owned()
             } else {
-                get_package_name()
+                manager.to_string()
             }
         ));
     }
@@ -127,12 +132,11 @@ struct RegistryResponse {
 }
 
 #[plugin_fn]
-pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
+pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
-    let response: RegistryResponse = fetch_url_with_cache(format!(
-        "https://registry.npmjs.org/{}/",
-        get_package_name()
-    ))?;
+    let manager = get_package_manager(&input.env);
+    let response: RegistryResponse =
+        fetch_url_with_cache(format!("https://registry.npmjs.org/{}/", manager))?;
 
     for item in response.versions.values() {
         output.versions.push(Version::parse(&item.version)?);
@@ -156,12 +160,13 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
 pub fn resolve_version(
     Json(input): Json<ResolveVersionInput>,
 ) -> FnResult<Json<ResolveVersionOutput>> {
+    let manager = get_package_manager(&input.env);
     let mut output = ResolveVersionOutput::default();
 
-    match get_package_name() {
+    match manager {
         // When the alias "bundled" is provided, we should install the npm
         // version that comes bundled with the current Node.js version.
-        "npm" => {
+        PackageManager::Npm => {
             if input.initial == "bundled" {
                 let node_version =
                     unsafe { exec_command(Json(ExecCommandInput::new("node", ["--version"])))?.0 };
@@ -194,7 +199,7 @@ pub fn resolve_version(
         // Yarn >= 2 works differently than normal packages, as their runtime code
         // is stored *within* the repository, and the v1 package detects it.
         // Because of this, we need to always install the v1 package!
-        "yarn" => {
+        PackageManager::Yarn => {
             if !input.initial.starts_with('1') {
                 unsafe {
                     trace(Json(
@@ -215,11 +220,12 @@ pub fn resolve_version(
 
 #[plugin_fn]
 pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
+    let manager = get_package_manager(&input.env);
     let mut global_shims = HashMap::<String, ShimConfig>::new();
     let mut local_shims = HashMap::<String, ShimConfig>::new();
 
-    match get_package_name() {
-        "npm" => {
+    match manager {
+        PackageManager::Npm => {
             local_shims.insert(
                 "npm".into(),
                 ShimConfig::local_with_parent("bin/npm-cli.js", "node"),
@@ -235,7 +241,7 @@ pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<Create
                 }),
             );
         }
-        "pnpm" => {
+        PackageManager::Pnpm => {
             local_shims.insert(
                 "pnpm".into(),
                 ShimConfig::local_with_parent("bin/pnpm.cjs", "node"),
@@ -244,7 +250,7 @@ pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<Create
             // pnpx
             global_shims.insert("pnpx".into(), ShimConfig::global_with_sub_command("dlx"));
         }
-        "yarn" => {
+        PackageManager::Yarn => {
             local_shims.insert(
                 "yarn".into(),
                 ShimConfig::local_with_parent("bin/yarn.js", "node"),
@@ -253,7 +259,6 @@ pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<Create
             // yarnpkg
             global_shims.insert("yarnpkg".into(), ShimConfig::default());
         }
-        _ => {}
     };
 
     Ok(Json(CreateShimsOutput {
@@ -278,10 +283,11 @@ pub fn parse_version_file(
     Json(input): Json<ParseVersionFileInput>,
 ) -> FnResult<Json<ParseVersionFileOutput>> {
     let mut version = None;
-    let package_name = get_package_name();
+    let manager = get_package_manager(&input.env);
 
     if input.file == "package.json" {
         let package_json: PackageJson = json::from_str(&input.content)?;
+        let package_name = manager.to_string();
 
         if let Some(manager) = package_json.package_manager {
             let mut parts = manager.split('@');
@@ -294,7 +300,7 @@ pub fn parse_version_file(
 
         if version.is_none() {
             if let Some(engines) = package_json.engines {
-                if let Some(constraint) = engines.get(package_name) {
+                if let Some(constraint) = engines.get(&package_name) {
                     version = Some(constraint.to_owned());
                 }
             }
