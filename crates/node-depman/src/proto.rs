@@ -19,6 +19,30 @@ enum PackageManager {
     Yarn,
 }
 
+impl PackageManager {
+    pub fn from(env: &Environment) -> PackageManager {
+        if env.id.to_lowercase().contains("yarn") {
+            PackageManager::Yarn
+        } else if env.id.to_lowercase().contains("pnpm") {
+            PackageManager::Pnpm
+        } else {
+            PackageManager::Npm
+        }
+    }
+
+    pub fn get_package_name(&self, version: &str) -> String {
+        if self.is_yarn_berry(version) {
+            "@yarnpkg/cli-dist".into()
+        } else {
+            self.to_string()
+        }
+    }
+
+    pub fn is_yarn_berry(&self, version: &str) -> bool {
+        self == &PackageManager::Yarn && (!version.starts_with('1') || version == "berry")
+    }
+}
+
 impl fmt::Display for PackageManager {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
@@ -29,19 +53,9 @@ impl fmt::Display for PackageManager {
     }
 }
 
-fn get_package_manager(env: &Environment) -> PackageManager {
-    if env.id.to_lowercase().contains("yarn") {
-        PackageManager::Yarn
-    } else if env.id.to_lowercase().contains("pnpm") {
-        PackageManager::Pnpm
-    } else {
-        PackageManager::Npm
-    }
-}
-
 #[plugin_fn]
 pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
-    let manager = get_package_manager(&input.env);
+    let manager = PackageManager::from(&input.env);
 
     Ok(Json(ToolMetadataOutput {
         name: manager.to_string(),
@@ -54,18 +68,27 @@ pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<Tool
 pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
-    let manager = get_package_manager(&input.env);
-    let version = input.env.version;
+    let version = &input.env.version;
+    let manager = PackageManager::from(&input.env);
+    let package_name = manager.get_package_name(version);
+
+    // Derive values based on package manager
+    let mut archive_prefix = "package".to_owned();
+    let mut package_without_scope = package_name.clone();
+
+    if manager == PackageManager::Yarn && !manager.is_yarn_berry(version) {
+        archive_prefix = format!("yarn-v{version}");
+    }
+
+    if package_without_scope.contains('/') {
+        package_without_scope = package_without_scope.split('/').nth(1).unwrap().to_owned();
+    }
 
     Ok(Json(DownloadPrebuiltOutput {
-        archive_prefix: Some(if manager == PackageManager::Yarn {
-            format!("yarn-v{version}")
-        } else {
-            "package".into()
-        }),
+        archive_prefix: Some(archive_prefix),
         download_url: format!(
-            "https://registry.npmjs.org/{name}/-/{name}-{version}.tgz",
-            name = manager.to_string()
+            "https://registry.npmjs.org/{}/-/{}-{version}.tgz",
+            package_name, package_without_scope,
         ),
         ..DownloadPrebuiltOutput::default()
     }))
@@ -75,12 +98,12 @@ pub fn download_prebuilt(
 pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
     let mut bin_path = None;
     let package_path = input.tool_dir.join("package.json");
-    let manager = get_package_manager(&input.env);
+    let manager = PackageManager::from(&input.env);
+    let manager_name = manager.to_string();
 
     // Extract the binary from the `package.json`
     if package_path.exists() {
         let package_json: PackageJson = json::from_slice(&fs::read(package_path)?)?;
-        let package_name = manager.to_string();
 
         if let Some(bin_field) = package_json.bin {
             match bin_field {
@@ -88,7 +111,7 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
                     bin_path = Some(bin);
                 }
                 BinField::Object(map) => {
-                    if let Some(bin) = map.get(&package_name) {
+                    if let Some(bin) = map.get(&manager_name) {
                         bin_path = Some(bin.to_owned());
                     }
                 }
@@ -108,7 +131,7 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
             if manager == PackageManager::Pnpm {
                 "pnpm.cjs".to_owned()
             } else {
-                manager.to_string()
+                manager_name
             }
         ));
     }
@@ -135,9 +158,11 @@ struct RegistryResponse {
 #[plugin_fn]
 pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
-    let manager = get_package_manager(&input.env);
+    let manager = PackageManager::from(&input.env);
+    let package_name = manager.get_package_name(&input.initial);
+
     let response: RegistryResponse =
-        fetch_url_with_cache(format!("https://registry.npmjs.org/{}/", manager))?;
+        fetch_url_with_cache(format!("https://registry.npmjs.org/{}/", package_name))?;
 
     for item in response.versions.values() {
         output.versions.push(Version::parse(&item.version)?);
@@ -154,6 +179,10 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
         output.aliases.insert(alias, version);
     }
 
+    output
+        .aliases
+        .insert("latest".into(), output.latest.clone().unwrap());
+
     Ok(Json(output))
 }
 
@@ -161,13 +190,13 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
 pub fn resolve_version(
     Json(input): Json<ResolveVersionInput>,
 ) -> FnResult<Json<ResolveVersionOutput>> {
-    let manager = get_package_manager(&input.env);
+    let manager = PackageManager::from(&input.env);
     let mut output = ResolveVersionOutput::default();
 
     match manager {
-        // When the alias "bundled" is provided, we should install the npm
-        // version that comes bundled with the current Node.js version.
         PackageManager::Npm => {
+            // When the alias "bundled" is provided, we should install the npm
+            // version that comes bundled with the current Node.js version.
             if input.initial == "bundled" {
                 let node_version =
                     unsafe { exec_command(Json(ExecCommandInput::new("node", ["--version"])))?.0 };
@@ -195,21 +224,10 @@ pub fn resolve_version(
             }
         }
 
-        // Yarn is installed through npm, but only v1 exists in the npm registry,
-        // even if a consumer is using Yarn 2/3. https://www.npmjs.com/package/yarn
-        // Yarn >= 2 works differently than normal packages, as their runtime code
-        // is stored *within* the repository, and the v1 package detects it.
-        // Because of this, we need to always install the v1 package!
         PackageManager::Yarn => {
-            if !input.initial.starts_with('1') {
-                unsafe {
-                    trace(Json(
-                        "Found Yarn v2+, installing latest v1 from registry for compatibility"
-                            .into(),
-                    ))?;
-                }
-
-                output.candidate = Some("1.22.19".into())
+            // Latest currently resolves to a v4-rc version...
+            if input.initial == "berry" {
+                output.candidate = Some("3".into());
             }
         }
 
@@ -221,7 +239,7 @@ pub fn resolve_version(
 
 #[plugin_fn]
 pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
-    let manager = get_package_manager(&input.env);
+    let manager = PackageManager::from(&input.env);
     let mut global_shims = HashMap::<String, ShimConfig>::new();
     let mut local_shims = HashMap::<String, ShimConfig>::new();
 
@@ -284,7 +302,7 @@ pub fn parse_version_file(
     Json(input): Json<ParseVersionFileInput>,
 ) -> FnResult<Json<ParseVersionFileOutput>> {
     let mut version = None;
-    let manager = get_package_manager(&input.env);
+    let manager = PackageManager::from(&input.env);
 
     if input.file == "package.json" {
         let package_json: PackageJson = json::from_str(&input.content)?;

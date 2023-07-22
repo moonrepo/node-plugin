@@ -146,7 +146,7 @@ mod yarn {
     #[test]
     fn locates_default_bin() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("pnpm-test", sandbox.path());
+        let plugin = create_plugin("yarn-test", sandbox.path());
 
         assert_eq!(
             plugin
@@ -156,6 +156,61 @@ mod yarn {
                         id: "yarn".into(),
                         os: HostOS::MacOS,
                         version: "1.22.0".into(),
+                        ..Default::default()
+                    },
+                    tool_dir: PathBuf::new()
+                })
+                .bin_path,
+            Some("bin/yarn".into())
+        );
+    }
+}
+
+mod yarn_berry {
+    use super::*;
+
+    generate_download_install_tests!("yarn-test", "3.6.1");
+
+    #[test]
+    fn supports_prebuilt() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("yarn-test", sandbox.path());
+
+        assert_eq!(
+            plugin.download_prebuilt(DownloadPrebuiltInput {
+                env: Environment {
+                    arch: HostArch::X64,
+                    id: "yarn".into(),
+                    os: HostOS::MacOS,
+                    version: "3.6.1".into(),
+                    ..Default::default()
+                }
+            }),
+            DownloadPrebuiltOutput {
+                archive_prefix: Some("package".into()),
+                bin_path: None,
+                checksum_name: None,
+                checksum_url: None,
+                download_name: None,
+                download_url: "https://registry.npmjs.org/@yarnpkg/cli-dist/-/cli-dist-3.6.1.tgz"
+                    .into()
+            }
+        );
+    }
+
+    #[test]
+    fn locates_default_bin() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("yarn-test", sandbox.path());
+
+        assert_eq!(
+            plugin
+                .locate_bins(LocateBinsInput {
+                    env: Environment {
+                        arch: HostArch::X64,
+                        id: "yarn".into(),
+                        os: HostOS::MacOS,
+                        version: "3.6.1".into(),
                         ..Default::default()
                     },
                     tool_dir: PathBuf::new()
