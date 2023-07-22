@@ -1,4 +1,4 @@
-// use proto_pdk::*;
+use proto_pdk::*;
 use proto_pdk_test_utils::{create_plugin, generate_resolve_versions_tests};
 use starbase_sandbox::create_empty_sandbox;
 
@@ -10,6 +10,84 @@ mod npm {
         "8.1" => "8.1.4",
         "9.7.2" => "9.7.2",
     });
+
+    #[test]
+    fn doesnt_parse_package_manager_if_diff_name() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("npm-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "packageManager": "yarn@1.2.3" }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "npm-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput { version: None }
+        );
+    }
+
+    #[test]
+    fn parses_package_manager() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("npm-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "packageManager": "npm@1.2.3" }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "npm-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput {
+                version: Some("1.2.3".into()),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_package_manager_latest() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("npm-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "packageManager": "npm" }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "npm-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput {
+                version: Some("latest".into()),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_engines() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("npm-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "engines": { "npm": "1.2.3" } }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "npm-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput {
+                version: Some("1.2.3".into()),
+            }
+        );
+    }
 }
 
 mod pnpm {
@@ -20,6 +98,84 @@ mod pnpm {
         "8.1" => "8.1.1",
         "dev" => "6.23.7-202112041634",
     });
+
+    #[test]
+    fn doesnt_parse_package_manager_if_diff_name() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("pnpm-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "packageManager": "yarn@1.2.3" }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "pnpm-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput { version: None }
+        );
+    }
+
+    #[test]
+    fn parses_package_manager() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("pnpm-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "packageManager": "pnpm@1.2.3" }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "pnpm-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput {
+                version: Some("1.2.3".into()),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_package_manager_latest() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("pnpm-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "packageManager": "pnpm" }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "pnpm-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput {
+                version: Some("latest".into()),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_engines() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("pnpm-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "engines": { "pnpm": "~1.2.3" } }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "pnpm-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput {
+                version: Some("~1.2.3".into()),
+            }
+        );
+    }
 }
 
 mod yarn {
@@ -31,4 +187,82 @@ mod yarn {
         "3" => "3.6.1",
         "berry" => "3.6.1",
     });
+
+    #[test]
+    fn doesnt_parse_package_manager_if_diff_name() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("yarn-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "packageManager": "pnpm@1.2.3" }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "yarn-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput { version: None }
+        );
+    }
+
+    #[test]
+    fn parses_package_manager() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("yarn-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "packageManager": "yarn@1.2.3" }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "yarn-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput {
+                version: Some("1.2.3".into()),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_package_manager_latest() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("yarn-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "packageManager": "yarn" }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "yarn-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput {
+                version: Some("latest".into()),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_engines() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("yarn-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "engines": { "yarn": ">=1.2.3" } }"#.into(),
+                file: "package.json".into(),
+                env: Environment {
+                    id: "yarn-test".into(),
+                    ..Environment::default()
+                },
+            }),
+            ParseVersionFileOutput {
+                version: Some(">=1.2.3".into()),
+            }
+        );
+    }
 }

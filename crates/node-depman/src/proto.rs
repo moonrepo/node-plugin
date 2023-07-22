@@ -226,8 +226,10 @@ pub fn resolve_version(
 
         PackageManager::Yarn => {
             // Latest currently resolves to a v4-rc version...
-            if input.initial == "berry" {
+            if input.initial == "berry" || input.initial == "latest" {
                 output.candidate = Some("3".into());
+            } else if input.initial == "legacy" || input.initial == "classic" {
+                output.candidate = Some("1".into());
             }
         }
 
@@ -306,20 +308,20 @@ pub fn parse_version_file(
 
     if input.file == "package.json" {
         let package_json: PackageJson = json::from_str(&input.content)?;
-        let package_name = manager.to_string();
+        let manager_name = manager.to_string();
 
         if let Some(manager) = package_json.package_manager {
             let mut parts = manager.split('@');
             let name = parts.next().unwrap_or_default();
 
-            if name == package_name {
+            if name == manager_name {
                 version = Some(parts.next().unwrap_or("latest").to_owned());
             }
         }
 
         if version.is_none() {
             if let Some(engines) = package_json.engines {
-                if let Some(constraint) = engines.get(&package_name) {
+                if let Some(constraint) = engines.get(&manager_name) {
                     version = Some(constraint.to_owned());
                 }
             }
