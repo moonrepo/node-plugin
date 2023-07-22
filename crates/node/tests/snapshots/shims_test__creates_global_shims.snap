@@ -1,0 +1,13 @@
+---
+source: crates/node/tests/shims_test.rs
+expression: "std::fs::read_to_string(sandbox.path().join(\".proto/bin\").join(if cfg!(windows)\n                    {\n                    format!(\"{}.cmd\", \"node-test\")\n                } else { \"node-test\".to_string() })).unwrap()"
+---
+#!/usr/bin/env bash
+set -e
+[ -n "$PROTO_DEBUG" ] && set -x
+
+
+
+exec proto run node-test --  "$@" 
+
+

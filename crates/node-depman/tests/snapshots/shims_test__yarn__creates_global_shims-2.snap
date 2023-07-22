@@ -1,0 +1,13 @@
+---
+source: crates/node-depman/tests/shims_test.rs
+expression: "std::fs::read_to_string(sandbox.path().join(\".proto/bin\").join(if cfg!(windows)\n                    {\n                    format!(\"{}.cmd\", \"yarnpkg\")\n                } else { \"yarnpkg\".to_string() })).unwrap()"
+---
+#!/usr/bin/env bash
+set -e
+[ -n "$PROTO_DEBUG" ] && set -x
+
+
+
+exec proto run yarn-test --  "$@" 
+
+

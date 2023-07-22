@@ -13,3 +13,9 @@ node_common = { path = "../common" }
 extism-pdk = { workspace = true }
 proto_pdk = { workspace = true }
 serde = { workspace = true }
+
+[dev-dependencies]
+proto_core = { workspace = true }
+proto_pdk_test_utils = { workspace = true }
+starbase_sandbox = { workspace = true }
+tokio = { workspace = true }

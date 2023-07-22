@@ -29,12 +29,7 @@ fn map_arch(os: HostOS, arch: HostArch) -> Result<String, PluginError> {
         HostArch::S390x => "s390x".into(),
         HostArch::X64 => "x64".into(),
         HostArch::X86 => "x86".into(),
-        other => {
-            return Err(PluginError::UnsupportedArchitecture {
-                tool: NAME.into(),
-                arch: other.to_string(),
-            });
-        }
+        _ => unreachable!(),
     };
 
     Ok(arch)
@@ -44,13 +39,27 @@ fn map_arch(os: HostOS, arch: HostArch) -> Result<String, PluginError> {
 pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
+    check_supported_os_and_arch(
+        NAME,
+        &input.env,
+        permutations! [
+            HostOS::Linux => [HostArch::X64, HostArch::Arm64, HostArch::Arm, HostArch::Powerpc64, HostArch::S390x],
+            HostOS::MacOS => [HostArch::X64, HostArch::Arm64],
+            HostOS::Windows => [HostArch::X64, HostArch::X86, HostArch::Arm64],
+        ],
+    )?;
+
     let version = input.env.version;
     let arch = map_arch(input.env.os, input.env.arch)?;
 
     let prefix = match input.env.os {
         HostOS::Linux => format!("node-v{version}-linux-{arch}"),
         HostOS::MacOS => {
-            let parsed_version = Version::parse(&version)?;
+            let parsed_version = if version == "latest" {
+                Version::new(20, 0, 0) // Doesn't matter
+            } else {
+                Version::parse(&version)?
+            };
 
             // Arm64 support was added after v16, but M1/M2 machines can
             // run x64 binaries via Rosetta. This is a compat hack!
@@ -61,12 +70,7 @@ pub fn download_prebuilt(
             }
         }
         HostOS::Windows => format!("node-v{version}-win-{arch}"),
-        other => {
-            return Err(PluginError::UnsupportedPlatform {
-                tool: NAME.into(),
-                platform: other.to_string(),
-            })?;
-        }
+        _ => unreachable!(),
     };
 
     let filename = if input.env.os == HostOS::Windows {
@@ -90,7 +94,7 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
         bin_path: Some(if input.env.os == HostOS::Windows {
             format!("{}.exe", BIN)
         } else {
-            BIN.to_owned()
+            format!("bin/{}", BIN)
         }),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec!["$PROTO_ROOT/tools/node/globals/bin".into()],
@@ -127,6 +131,10 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
 
         output.versions.push(version);
     }
+
+    output
+        .aliases
+        .insert("latest".into(), output.latest.clone().unwrap());
 
     Ok(Json(output))
 }
@@ -180,8 +188,8 @@ pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
 
 #[plugin_fn]
 pub fn parse_version_file(
-    Json(input): Json<ParseVersionInput>,
-) -> FnResult<Json<ParseVersionOutput>> {
+    Json(input): Json<ParseVersionFileInput>,
+) -> FnResult<Json<ParseVersionFileOutput>> {
     let mut version = None;
 
     if input.file == "package.json" {
@@ -196,5 +204,5 @@ pub fn parse_version_file(
         version = Some(input.content.trim().to_owned());
     }
 
-    Ok(Json(ParseVersionOutput { version }))
+    Ok(Json(ParseVersionFileOutput { version }))
 }
