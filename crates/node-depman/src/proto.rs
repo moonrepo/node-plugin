@@ -74,14 +74,14 @@ pub fn download_prebuilt(
 
     // Derive values based on package manager
     let mut archive_prefix = "package".to_owned();
-    let mut package_without_scope = package_name.clone();
+    let package_without_scope = if package_name.contains('/') {
+        package_name.split('/').nth(1).unwrap()
+    } else {
+        &package_name
+    };
 
     if manager == PackageManager::Yarn && !manager.is_yarn_berry(version) {
         archive_prefix = format!("yarn-v{version}");
-    }
-
-    if package_without_scope.contains('/') {
-        package_without_scope = package_without_scope.split('/').nth(1).unwrap().to_owned();
     }
 
     Ok(Json(DownloadPrebuiltOutput {
