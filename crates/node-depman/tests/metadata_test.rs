@@ -25,7 +25,7 @@ mod npm {
             ToolMetadataOutput {
                 name: "npm".into(),
                 type_of: PluginType::DependencyManager,
-                ..ToolMetadataOutput::default()
+                env_vars: vec!["PROTO_NODE_VERSION".into()],
             }
         );
     }
@@ -44,7 +44,7 @@ mod pnpm {
             ToolMetadataOutput {
                 name: "pnpm".into(),
                 type_of: PluginType::DependencyManager,
-                ..ToolMetadataOutput::default()
+                env_vars: vec!["PROTO_NODE_VERSION".into()],
             }
         );
     }
@@ -63,7 +63,7 @@ mod yarn {
             ToolMetadataOutput {
                 name: "yarn".into(),
                 type_of: PluginType::DependencyManager,
-                ..ToolMetadataOutput::default()
+                env_vars: vec!["PROTO_NODE_VERSION".into()],
             }
         );
     }

@@ -60,7 +60,7 @@ pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<Tool
     Ok(Json(ToolMetadataOutput {
         name: manager.to_string(),
         type_of: PluginType::DependencyManager,
-        env_vars: vec![],
+        env_vars: vec!["PROTO_NODE_VERSION".into()],
     }))
 }
 
@@ -198,24 +198,43 @@ pub fn resolve_version(
             // When the alias "bundled" is provided, we should install the npm
             // version that comes bundled with the current Node.js version.
             if input.initial == "bundled" {
-                let node_version =
-                    unsafe { exec_command(Json(ExecCommandInput::new("node", ["--version"])))?.0 };
-                let node_version = node_version.stdout.trim(); // Has v prefix
-
                 let response: Vec<NodeDistVersion> =
                     fetch_url_with_cache("https://nodejs.org/dist/index.json")?;
+                let mut found_version = false;
 
-                for node_release in response {
-                    if node_release.version == node_version {
-                        output.candidate = node_release.npm;
-                        break;
+                // Infer from proto's environment variable
+                if let Some(node_version) = input.env.vars.get("PROTO_NODE_VERSION") {
+                    for node_release in &response {
+                        // Theirs starts with v, ours does not
+                        if &node_release.version[1..] == node_version {
+                            output.version = node_release.npm.clone();
+                            found_version = true;
+                            break;
+                        }
                     }
                 }
 
-                if output.candidate.is_none() {
+                // Otherwise call the current `node` binary and infer from that
+                if !found_version {
+                    let node_version = unsafe {
+                        exec_command(Json(ExecCommandInput::new("node", ["--version"])))?.0
+                    };
+                    let node_version = node_version.stdout.trim();
+
+                    for node_release in &response {
+                        // Both start with v
+                        if node_release.version == node_version {
+                            output.version = node_release.npm.clone();
+                            found_version = true;
+                            break;
+                        }
+                    }
+                }
+
+                if !found_version {
                     unsafe {
                         trace(Json(
-                            format!("Could not find a bundled npm version for Node.js {}, falling back to latest", node_version).into()
+                            "Could not find a bundled npm version for Node.js, falling back to latest".into()
                         ))?;
                     }
 
