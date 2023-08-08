@@ -93,7 +93,7 @@ mod pnpm {
     use super::*;
 
     generate_resolve_versions_tests!("pnpm-test", {
-        "7" => "7.33.5",
+        "7" => "7.33.6",
         "8.1" => "8.1.1",
         "dev" => "6.23.7-202112041634",
     });
