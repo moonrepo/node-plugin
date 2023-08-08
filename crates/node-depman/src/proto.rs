@@ -5,10 +5,11 @@ use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt;
 use std::fs;
+use std::path::PathBuf;
 
 #[host_fn]
 extern "ExtismHost" {
-    fn trace(input: Json<TraceInput>);
+    fn host_log(input: Json<HostLogInput>);
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
 }
 
@@ -61,6 +62,7 @@ pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<Tool
         name: manager.to_string(),
         type_of: PluginType::DependencyManager,
         env_vars: vec!["PROTO_NODE_VERSION".into()],
+        ..ToolMetadataOutput::default()
     }))
 }
 
@@ -137,9 +139,10 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
     }
 
     Ok(Json(LocateBinsOutput {
-        bin_path,
+        bin_path: bin_path.map(PathBuf::from),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec!["$PROTO_ROOT/tools/node/globals/bin".into()],
+        ..LocateBinsOutput::default()
     }))
 }
 
@@ -217,7 +220,7 @@ pub fn resolve_version(
                 // Otherwise call the current `node` binary and infer from that
                 if !found_version {
                     let node_version = unsafe {
-                        exec_command(Json(ExecCommandInput::new("node", ["--version"])))?.0
+                        exec_command(Json(ExecCommandInput::pipe("node", ["--version"])))?.0
                     };
                     let node_version = node_version.stdout.trim();
 
@@ -233,7 +236,7 @@ pub fn resolve_version(
 
                 if !found_version {
                     unsafe {
-                        trace(Json(
+                        host_log(Json(
                             "Could not find a bundled npm version for Node.js, falling back to latest".into()
                         ))?;
                     }
@@ -308,6 +311,7 @@ pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<Create
         }),
         global_shims,
         local_shims,
+        ..CreateShimsOutput::default()
     }))
 }
 
