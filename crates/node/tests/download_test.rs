@@ -1,5 +1,4 @@
-use proto_pdk::*;
-use proto_pdk_test_utils::{create_plugin, generate_download_install_tests};
+use proto_pdk_test_utils::*;
 use starbase_sandbox::create_empty_sandbox;
 use std::path::PathBuf;
 
@@ -21,7 +20,6 @@ fn supports_linux_arm64() {
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-arm64".into()),
-            bin_path: None,
             checksum_name: None,
             checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-linux-arm64.tar.xz".into()),
@@ -46,7 +44,6 @@ fn supports_linux_arm() {
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-armv7l".into()),
-            bin_path: None,
             checksum_name: None,
             checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-linux-armv7l.tar.xz".into()),
@@ -71,7 +68,6 @@ fn supports_linux_x64() {
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-x64".into()),
-            bin_path: None,
             checksum_name: None,
             checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-linux-x64.tar.xz".into()),
@@ -96,7 +92,6 @@ fn supports_linux_s390x() {
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-s390x".into()),
-            bin_path: None,
             checksum_name: None,
             checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-linux-s390x.tar.xz".into()),
@@ -121,7 +116,6 @@ fn supports_linux_ppc64() {
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-ppc64le".into()),
-            bin_path: None,
             checksum_name: None,
             checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-linux-ppc64le.tar.xz".into()),
@@ -147,7 +141,6 @@ fn supports_macos_arm64() {
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-darwin-arm64".into()),
-            bin_path: None,
             checksum_name: None,
             checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-darwin-arm64.tar.xz".into()),
@@ -172,7 +165,6 @@ fn supports_macos_x64() {
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-darwin-x64".into()),
-            bin_path: None,
             checksum_name: None,
             checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-darwin-x64.tar.xz".into()),
@@ -197,7 +189,6 @@ fn supports_windows_arm64() {
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-win-arm64".into()),
-            bin_path: None,
             checksum_name: None,
             checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-win-arm64.zip".into()),
@@ -222,7 +213,6 @@ fn supports_windows_x64() {
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-win-x64".into()),
-            bin_path: None,
             checksum_name: None,
             checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-win-x64.zip".into()),
@@ -247,7 +237,6 @@ fn supports_windows_x86() {
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-win-x86".into()),
-            bin_path: None,
             checksum_name: None,
             checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-win-x86.zip".into()),
@@ -270,7 +259,8 @@ fn locates_unix_bin() {
                     version: "20.0.0".into(),
                     ..Default::default()
                 },
-                tool_dir: PathBuf::new()
+                home_dir: PathBuf::new(),
+                tool_dir: PathBuf::new(),
             })
             .bin_path,
         Some("bin/node".into())
@@ -291,7 +281,8 @@ fn locates_windows_bin() {
                     version: "20.0.0".into(),
                     ..Default::default()
                 },
-                tool_dir: PathBuf::new()
+                home_dir: PathBuf::new(),
+                tool_dir: PathBuf::new(),
             })
             .bin_path,
         Some("node.exe".into())

@@ -1,6 +1,4 @@
-use proto_core::Installable;
-use proto_pdk::*;
-use proto_pdk_test_utils::{create_plugin, generate_download_install_tests};
+use proto_pdk_test_utils::*;
 use starbase_sandbox::create_empty_sandbox;
 use std::path::PathBuf;
 
@@ -26,7 +24,6 @@ mod npm {
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("package".into()),
-                bin_path: None,
                 checksum_name: None,
                 checksum_url: None,
                 download_name: None,
@@ -50,7 +47,8 @@ mod npm {
                         version: "9.0.0".into(),
                         ..Default::default()
                     },
-                    tool_dir: PathBuf::new()
+                    home_dir: PathBuf::new(),
+                    tool_dir: PathBuf::new(),
                 })
                 .bin_path,
             Some("bin/npm".into())
@@ -80,7 +78,6 @@ mod pnpm {
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("package".into()),
-                bin_path: None,
                 checksum_name: None,
                 checksum_url: None,
                 download_name: None,
@@ -104,7 +101,8 @@ mod pnpm {
                         version: "8.0.0".into(),
                         ..Default::default()
                     },
-                    tool_dir: PathBuf::new()
+                    home_dir: PathBuf::new(),
+                    tool_dir: PathBuf::new(),
                 })
                 .bin_path,
             Some("bin/pnpm.cjs".into())
@@ -134,7 +132,6 @@ mod yarn {
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("yarn-v1.22.0".into()),
-                bin_path: None,
                 checksum_name: None,
                 checksum_url: None,
                 download_name: None,
@@ -158,7 +155,8 @@ mod yarn {
                         version: "1.22.0".into(),
                         ..Default::default()
                     },
-                    tool_dir: PathBuf::new()
+                    home_dir: PathBuf::new(),
+                    tool_dir: PathBuf::new(),
                 })
                 .bin_path,
             Some("bin/yarn".into())
@@ -188,7 +186,6 @@ mod yarn_berry {
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("package".into()),
-                bin_path: None,
                 checksum_name: None,
                 checksum_url: None,
                 download_name: None,
@@ -213,7 +210,8 @@ mod yarn_berry {
                         version: "3.6.1".into(),
                         ..Default::default()
                     },
-                    tool_dir: PathBuf::new()
+                    home_dir: PathBuf::new(),
+                    tool_dir: PathBuf::new(),
                 })
                 .bin_path,
             Some("bin/yarn".into())
@@ -245,7 +243,8 @@ fn locates_bin_from_package_json_bin() {
                     version: "20.0.0".into(),
                     ..Default::default()
                 },
-                tool_dir: plugin.to_virtual_path(&plugin.tool.get_install_dir().unwrap()),
+                home_dir: PathBuf::new(),
+                tool_dir: plugin.to_virtual_path(&plugin.tool.get_tool_dir()),
             })
             .bin_path,
         Some("./file.js".into())
@@ -273,7 +272,8 @@ fn locates_bin_from_package_json_bin() {
                     version: "9.0.0".into(),
                     ..Default::default()
                 },
-                tool_dir: plugin.to_virtual_path(&plugin.tool.get_install_dir().unwrap()),
+                home_dir: PathBuf::new(),
+                tool_dir: plugin.to_virtual_path(&plugin.tool.get_tool_dir()),
             })
             .bin_path,
         Some("./npm.js".into())
@@ -303,7 +303,8 @@ fn locates_bin_from_package_json_main() {
                     version: "8.0.0".into(),
                     ..Default::default()
                 },
-                tool_dir: plugin.to_virtual_path(&plugin.tool.get_install_dir().unwrap()),
+                home_dir: PathBuf::new(),
+                tool_dir: plugin.to_virtual_path(&plugin.tool.get_tool_dir()),
             })
             .bin_path,
         Some("./index.js".into())
