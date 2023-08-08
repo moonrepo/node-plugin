@@ -203,7 +203,7 @@ pub fn parse_version_file(
             }
         }
     } else {
-        version = Some(input.content.trim().to_owned());
+        version = Some(input.content);
     }
 
     Ok(Json(ParseVersionFileOutput { version }))

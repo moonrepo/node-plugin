@@ -62,6 +62,11 @@ pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<Tool
         name: manager.to_string(),
         type_of: PluginType::DependencyManager,
         env_vars: vec!["PROTO_NODE_VERSION".into()],
+        default_version: if manager == PackageManager::Npm {
+            Some("bundled".into())
+        } else {
+            None
+        },
         ..ToolMetadataOutput::default()
     }))
 }
@@ -219,9 +224,7 @@ pub fn resolve_version(
 
                 // Otherwise call the current `node` binary and infer from that
                 if !found_version {
-                    let node_version = unsafe {
-                        exec_command(Json(ExecCommandInput::pipe("node", ["--version"])))?.0
-                    };
+                    let node_version = exec_command!("node", ["--version"]);
                     let node_version = node_version.stdout.trim();
 
                     for node_release in &response {
@@ -235,11 +238,9 @@ pub fn resolve_version(
                 }
 
                 if !found_version {
-                    unsafe {
-                        host_log(Json(
-                            "Could not find a bundled npm version for Node.js, falling back to latest".into()
-                        ))?;
-                    }
+                    host_log!(
+                        "Could not find a bundled npm version for Node.js, falling back to latest"
+                    );
 
                     output.candidate = Some("latest".into());
                 }

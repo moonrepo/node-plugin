@@ -27,6 +27,7 @@ mod npm {
                 name: "npm".into(),
                 type_of: PluginType::DependencyManager,
                 env_vars: vec!["PROTO_NODE_VERSION".into()],
+                default_version: Some("bundled".into()),
                 ..ToolMetadataOutput::default()
             }
         );

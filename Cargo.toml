@@ -4,8 +4,8 @@ members = ["crates/*"]
 
 [workspace.dependencies]
 extism-pdk = "0.3.3"
-# proto_pdk = { version = "0.3.0", path = "../proto/crates/pdk" }
-# proto_pdk_test_utils = { version = "0.2.0", path = "../proto/crates/pdk-test-utils" }
+# proto_pdk = { version = "0.4.1", path = "../proto/crates/pdk" }
+# proto_pdk_test_utils = { version = "0.3.3", path = "../proto/crates/pdk-test-utils" }
 proto_pdk = "0.4.1"
 proto_pdk_test_utils = "0.3.3"
 serde = "1.0.183"
