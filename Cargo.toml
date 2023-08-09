@@ -4,12 +4,10 @@ members = ["crates/*"]
 
 [workspace.dependencies]
 extism-pdk = "0.3.3"
-# proto_core = { version = "0.13.0", path = "../proto/crates/core" }
-# proto_pdk = { version = "0.3.0", path = "../proto/crates/pdk" }
-# proto_pdk_test_utils = { version = "0.2.0", path = "../proto/crates/pdk-test-utils" }
-proto_core = "0.13.1"
-proto_pdk = "0.3.1"
-proto_pdk_test_utils = "0.2.1"
-serde = "1.0.167"
-starbase_sandbox = "0.1.5"
+# proto_pdk = { version = "0.4.1", path = "../proto/crates/pdk" }
+# proto_pdk_test_utils = { version = "0.3.3", path = "../proto/crates/pdk-test-utils" }
+proto_pdk = "0.4.2"
+proto_pdk_test_utils = "0.3.4"
+serde = "1.0.183"
+starbase_sandbox = "0.1.8"
 tokio = "1.29.1"

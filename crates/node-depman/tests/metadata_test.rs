@@ -1,6 +1,6 @@
-use proto_pdk::*;
-use proto_pdk_test_utils::create_plugin;
+use proto_pdk_test_utils::*;
 use starbase_sandbox::create_empty_sandbox;
+use std::path::PathBuf;
 
 fn create_metadata(id: &str) -> ToolMetadataInput {
     ToolMetadataInput {
@@ -9,6 +9,7 @@ fn create_metadata(id: &str) -> ToolMetadataInput {
             id: id.into(),
             ..Environment::default()
         },
+        home_dir: PathBuf::new(),
     }
 }
 
@@ -26,6 +27,8 @@ mod npm {
                 name: "npm".into(),
                 type_of: PluginType::DependencyManager,
                 env_vars: vec!["PROTO_NODE_VERSION".into()],
+                default_version: Some("bundled".into()),
+                ..ToolMetadataOutput::default()
             }
         );
     }
@@ -45,6 +48,7 @@ mod pnpm {
                 name: "pnpm".into(),
                 type_of: PluginType::DependencyManager,
                 env_vars: vec!["PROTO_NODE_VERSION".into()],
+                ..ToolMetadataOutput::default()
             }
         );
     }
@@ -64,6 +68,7 @@ mod yarn {
                 name: "yarn".into(),
                 type_of: PluginType::DependencyManager,
                 env_vars: vec!["PROTO_NODE_VERSION".into()],
+                ..ToolMetadataOutput::default()
             }
         );
     }

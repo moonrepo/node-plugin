@@ -12,6 +12,7 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
         name: NAME.into(),
         type_of: PluginType::Language,
         env_vars: vec!["NODE_OPTIONS".into(), "NODE_PATH".into()],
+        ..ToolMetadataOutput::default()
     }))
 }
 
@@ -92,12 +93,13 @@ pub fn download_prebuilt(
 pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
     Ok(Json(LocateBinsOutput {
         bin_path: Some(if input.env.os == HostOS::Windows {
-            format!("{}.exe", BIN)
+            format!("{}.exe", BIN).into()
         } else {
-            format!("bin/{}", BIN)
+            format!("bin/{}", BIN).into()
         }),
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec!["$PROTO_ROOT/tools/node/globals/bin".into()],
+        ..LocateBinsOutput::default()
     }))
 }
 
@@ -201,7 +203,7 @@ pub fn parse_version_file(
             }
         }
     } else {
-        version = Some(input.content.trim().to_owned());
+        version = Some(input.content);
     }
 
     Ok(Json(ParseVersionFileOutput { version }))
