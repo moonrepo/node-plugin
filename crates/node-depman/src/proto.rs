@@ -39,8 +39,14 @@ impl PackageManager {
         }
     }
 
+    pub fn is_yarn_classic(&self, version: &str) -> bool {
+        self == &PackageManager::Yarn
+            && (version.starts_with('1') || version == "legacy" || version == "classic")
+    }
+
     pub fn is_yarn_berry(&self, version: &str) -> bool {
-        self == &PackageManager::Yarn && (!version.starts_with('1') || version == "berry")
+        self == &PackageManager::Yarn
+            && (!version.starts_with('1') || version == "berry" || version == "latest")
     }
 }
 
@@ -80,22 +86,22 @@ pub fn download_prebuilt(
     let package_name = manager.get_package_name(version);
 
     // Derive values based on package manager
-    let mut archive_prefix = "package".to_owned();
+    let archive_prefix = if manager.is_yarn_classic(version) {
+        format!("yarn-v{version}")
+    } else {
+        "package".into()
+    };
+
     let package_without_scope = if package_name.contains('/') {
         package_name.split('/').nth(1).unwrap()
     } else {
         &package_name
     };
 
-    if manager == PackageManager::Yarn && !manager.is_yarn_berry(version) {
-        archive_prefix = format!("yarn-v{version}");
-    }
-
     Ok(Json(DownloadPrebuiltOutput {
         archive_prefix: Some(archive_prefix),
         download_url: format!(
-            "https://registry.npmjs.org/{}/-/{}-{version}.tgz",
-            package_name, package_without_scope,
+            "https://registry.npmjs.org/{package_name}/-/{package_without_scope}-{version}.tgz",
         ),
         ..DownloadPrebuiltOutput::default()
     }))
@@ -169,22 +175,33 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
     let manager = PackageManager::from(&input.env);
     let package_name = manager.get_package_name(&input.initial);
 
-    let response: RegistryResponse =
-        fetch_url_with_cache(format!("https://registry.npmjs.org/{}/", package_name))?;
-
-    for item in response.versions.values() {
-        output.versions.push(Version::parse(&item.version)?);
-    }
-
-    // Dist tags always includes latest
-    for (alias, version) in response.dist_tags {
-        let version = Version::parse(&version)?;
-
-        if alias == "latest" {
-            output.latest = Some(version.clone());
+    let mut map_output = |res: RegistryResponse| -> Result<(), Error> {
+        for item in res.versions.values() {
+            output.versions.push(Version::parse(&item.version)?);
         }
 
-        output.aliases.insert(alias, version);
+        // Dist tags always includes latest
+        for (alias, version) in res.dist_tags {
+            let version = Version::parse(&version)?;
+
+            if alias == "latest" && output.latest.is_none() {
+                output.latest = Some(version.clone());
+            }
+
+            output.aliases.entry(alias).or_insert(version);
+        }
+
+        Ok(())
+    };
+
+    map_output(fetch_url_with_cache(format!(
+        "https://registry.npmjs.org/{}/",
+        package_name
+    ))?)?;
+
+    // Yarn is managed by 2 different packages, so we need to request versions from both of them!
+    if manager.is_yarn_berry(&input.initial) {
+        map_output(fetch_url_with_cache("https://registry.npmjs.org/yarn/")?)?;
     }
 
     output
@@ -250,9 +267,9 @@ pub fn resolve_version(
         PackageManager::Yarn => {
             // Latest currently resolves to a v4-rc version...
             if input.initial == "berry" || input.initial == "latest" {
-                output.candidate = Some("3".into());
+                output.candidate = Some("~3".into());
             } else if input.initial == "legacy" || input.initial == "classic" {
-                output.candidate = Some("1".into());
+                output.candidate = Some("~1".into());
             }
         }
 

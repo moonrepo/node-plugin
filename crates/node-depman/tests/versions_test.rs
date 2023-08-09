@@ -182,7 +182,7 @@ mod yarn {
 
     generate_resolve_versions_tests!("yarn-test", {
         "1" => "1.22.19",
-        "2" => "2.4.2",
+        "2" => "2.4.3",
         "3" => "3.6.1",
         "berry" => "3.6.1",
     });
