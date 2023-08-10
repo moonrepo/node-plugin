@@ -67,26 +67,6 @@ mod npm {
             }
         );
     }
-
-    #[test]
-    fn parses_engines() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("npm-test", sandbox.path());
-
-        assert_eq!(
-            plugin.parse_version_file(ParseVersionFileInput {
-                content: r#"{ "engines": { "npm": "1.2.3" } }"#.into(),
-                file: "package.json".into(),
-                env: Environment {
-                    id: "npm-test".into(),
-                    ..Environment::default()
-                },
-            }),
-            ParseVersionFileOutput {
-                version: Some("1.2.3".into()),
-            }
-        );
-    }
 }
 
 mod pnpm {
@@ -152,26 +132,6 @@ mod pnpm {
             }),
             ParseVersionFileOutput {
                 version: Some("latest".into()),
-            }
-        );
-    }
-
-    #[test]
-    fn parses_engines() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("pnpm-test", sandbox.path());
-
-        assert_eq!(
-            plugin.parse_version_file(ParseVersionFileInput {
-                content: r#"{ "engines": { "pnpm": "~1.2.3" } }"#.into(),
-                file: "package.json".into(),
-                env: Environment {
-                    id: "pnpm-test".into(),
-                    ..Environment::default()
-                },
-            }),
-            ParseVersionFileOutput {
-                version: Some("~1.2.3".into()),
             }
         );
     }
@@ -241,26 +201,6 @@ mod yarn {
             }),
             ParseVersionFileOutput {
                 version: Some("latest".into()),
-            }
-        );
-    }
-
-    #[test]
-    fn parses_engines() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
-
-        assert_eq!(
-            plugin.parse_version_file(ParseVersionFileInput {
-                content: r#"{ "engines": { "yarn": ">=1.2.3" } }"#.into(),
-                file: "package.json".into(),
-                env: Environment {
-                    id: "yarn-test".into(),
-                    ..Environment::default()
-                },
-            }),
-            ParseVersionFileOutput {
-                version: Some(">=1.2.3".into()),
             }
         );
     }

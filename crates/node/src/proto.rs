@@ -1,5 +1,5 @@
 use extism_pdk::*;
-use node_common::{NodeDistLTS, NodeDistVersion, PackageJson};
+use node_common::{NodeDistLTS, NodeDistVersion};
 use proto_pdk::*;
 use std::collections::HashMap;
 
@@ -180,31 +180,6 @@ pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<Create
 #[plugin_fn]
 pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
     Ok(Json(DetectVersionOutput {
-        files: vec![
-            ".nvmrc".into(),
-            ".node-version".into(),
-            "package.json".into(),
-        ],
+        files: vec![".nvmrc".into(), ".node-version".into()],
     }))
-}
-
-#[plugin_fn]
-pub fn parse_version_file(
-    Json(input): Json<ParseVersionFileInput>,
-) -> FnResult<Json<ParseVersionFileOutput>> {
-    let mut version = None;
-
-    if input.file == "package.json" {
-        let package_json: PackageJson = json::from_str(&input.content)?;
-
-        if let Some(engines) = package_json.engines {
-            if let Some(constraint) = engines.get(BIN) {
-                version = Some(constraint.to_owned());
-            }
-        }
-    } else {
-        version = Some(input.content);
-    }
-
-    Ok(Json(ParseVersionFileOutput { version }))
 }

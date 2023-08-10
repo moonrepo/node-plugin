@@ -359,14 +359,6 @@ pub fn parse_version_file(
                 version = Some(parts.next().unwrap_or("latest").to_owned());
             }
         }
-
-        if version.is_none() {
-            if let Some(engines) = package_json.engines {
-                if let Some(constraint) = engines.get(&manager_name) {
-                    version = Some(constraint.to_owned());
-                }
-            }
-        }
     }
 
     Ok(Json(ParseVersionFileOutput { version }))
