@@ -28,6 +28,7 @@ mod npm {
                 type_of: PluginType::DependencyManager,
                 env_vars: vec!["PROTO_NODE_VERSION".into()],
                 default_version: Some("bundled".into()),
+                plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
                 ..ToolMetadataOutput::default()
             }
         );
@@ -48,6 +49,7 @@ mod pnpm {
                 name: "pnpm".into(),
                 type_of: PluginType::DependencyManager,
                 env_vars: vec!["PROTO_NODE_VERSION".into()],
+                plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
                 ..ToolMetadataOutput::default()
             }
         );
@@ -68,6 +70,7 @@ mod yarn {
                 name: "yarn".into(),
                 type_of: PluginType::DependencyManager,
                 env_vars: vec!["PROTO_NODE_VERSION".into()],
+                plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
                 ..ToolMetadataOutput::default()
             }
         );

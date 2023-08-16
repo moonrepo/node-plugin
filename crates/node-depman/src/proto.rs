@@ -73,6 +73,7 @@ pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<Tool
         } else {
             None
         },
+        plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
         ..ToolMetadataOutput::default()
     }))
 }
@@ -202,6 +203,10 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
     // Yarn is managed by 2 different packages, so we need to request versions from both of them!
     if manager.is_yarn_berry(&input.initial) {
         map_output(fetch_url_with_cache("https://registry.npmjs.org/yarn/")?)?;
+    } else if manager.is_yarn_classic(&input.initial) {
+        map_output(fetch_url_with_cache(
+            "https://registry.npmjs.org/@yarnpkg/cli-dist/",
+        )?)?;
     }
 
     output
