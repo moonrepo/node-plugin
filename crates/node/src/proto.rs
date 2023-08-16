@@ -1,7 +1,12 @@
 use extism_pdk::*;
-use node_common::{NodeDistLTS, NodeDistVersion};
+use node_common::{commands, NodeDistLTS, NodeDistVersion};
 use proto_pdk::*;
 use std::collections::HashMap;
+
+#[host_fn]
+extern "ExtismHost" {
+    fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
+}
 
 static NAME: &str = "Node.js";
 static BIN: &str = "node";
@@ -183,4 +188,28 @@ pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
     Ok(Json(DetectVersionOutput {
         files: vec![".nvmrc".into(), ".node-version".into()],
     }))
+}
+
+#[plugin_fn]
+pub fn install_global(
+    Json(input): Json<InstallGlobalInput>,
+) -> FnResult<Json<InstallGlobalOutput>> {
+    let result = exec_command!(commands::install_global(
+        &input.dependency,
+        &input.globals_dir
+    ));
+
+    Ok(Json(InstallGlobalOutput::from_exec_command(result)))
+}
+
+#[plugin_fn]
+pub fn uninstall_global(
+    Json(input): Json<UninstallGlobalInput>,
+) -> FnResult<Json<UninstallGlobalOutput>> {
+    let result = exec_command!(commands::uninstall_global(
+        &input.dependency,
+        &input.globals_dir
+    ));
+
+    Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
 }

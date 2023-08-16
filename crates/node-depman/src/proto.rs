@@ -1,5 +1,5 @@
 use extism_pdk::*;
-use node_common::{BinField, NodeDistVersion, PackageJson};
+use node_common::{commands, BinField, NodeDistVersion, PackageJson};
 use proto_pdk::*;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -9,8 +9,8 @@ use std::path::PathBuf;
 
 #[host_fn]
 extern "ExtismHost" {
-    fn host_log(input: Json<HostLogInput>);
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
+    fn host_log(input: Json<HostLogInput>);
 }
 
 #[derive(PartialEq)]
@@ -117,24 +117,24 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
 
     // Extract the binary from the `package.json`
     if package_path.exists() {
-        let package_json: PackageJson = json::from_slice(&fs::read(package_path)?)?;
-
-        if let Some(bin_field) = package_json.bin {
-            match bin_field {
-                BinField::String(bin) => {
-                    bin_path = Some(bin);
-                }
-                BinField::Object(map) => {
-                    if let Some(bin) = map.get(&manager_name) {
-                        bin_path = Some(bin.to_owned());
+        if let Ok(package_json) = json::from_slice::<PackageJson>(&fs::read(package_path)?) {
+            if let Some(bin_field) = package_json.bin {
+                match bin_field {
+                    BinField::String(bin) => {
+                        bin_path = Some(bin);
                     }
-                }
-            };
-        }
+                    BinField::Object(map) => {
+                        if let Some(bin) = map.get(&manager_name) {
+                            bin_path = Some(bin.to_owned());
+                        }
+                    }
+                };
+            }
 
-        if bin_path.is_none() {
-            if let Some(main_field) = package_json.main {
-                bin_path = Some(main_field);
+            if bin_path.is_none() {
+                if let Some(main_field) = package_json.main {
+                    bin_path = Some(main_field);
+                }
             }
         }
     }
@@ -350,21 +350,43 @@ pub fn parse_version_file(
     Json(input): Json<ParseVersionFileInput>,
 ) -> FnResult<Json<ParseVersionFileOutput>> {
     let mut version = None;
-    let manager = PackageManager::from(&input.env);
 
     if input.file == "package.json" {
-        let package_json: PackageJson = json::from_str(&input.content)?;
-        let manager_name = manager.to_string();
+        if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
+            if let Some(pm) = package_json.package_manager {
+                let mut parts = pm.split('@');
+                let name = parts.next().unwrap_or_default();
 
-        if let Some(manager) = package_json.package_manager {
-            let mut parts = manager.split('@');
-            let name = parts.next().unwrap_or_default();
-
-            if name == manager_name {
-                version = Some(parts.next().unwrap_or("latest").to_owned());
+                if name == PackageManager::from(&input.env).to_string() {
+                    version = Some(parts.next().unwrap_or("latest").to_owned());
+                }
             }
         }
     }
 
     Ok(Json(ParseVersionFileOutput { version }))
+}
+
+#[plugin_fn]
+pub fn install_global(
+    Json(input): Json<InstallGlobalInput>,
+) -> FnResult<Json<InstallGlobalOutput>> {
+    let result = exec_command!(commands::install_global(
+        &input.dependency,
+        &input.globals_dir
+    ));
+
+    Ok(Json(InstallGlobalOutput::from_exec_command(result)))
+}
+
+#[plugin_fn]
+pub fn uninstall_global(
+    Json(input): Json<UninstallGlobalInput>,
+) -> FnResult<Json<UninstallGlobalOutput>> {
+    let result = exec_command!(commands::uninstall_global(
+        &input.dependency,
+        &input.globals_dir
+    ));
+
+    Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
 }

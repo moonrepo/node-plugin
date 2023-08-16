@@ -6,6 +6,11 @@
 
 - Added support for `install_global` and `uninstall_global`.
 
+#### 🐞 Fixes
+
+- **npm**
+  - Will no longer crash when parsing an invalid `package.json`.
+
 ## 0.1.0
 
 #### 💥 Breaking
