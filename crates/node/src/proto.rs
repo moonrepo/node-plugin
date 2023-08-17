@@ -46,9 +46,11 @@ fn map_arch(os: HostOS, arch: HostArch) -> Result<String, PluginError> {
 pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
+    let env = get_proto_environment()?;
+
     check_supported_os_and_arch(
         NAME,
-        &input.env,
+        &env,
         permutations! [
             HostOS::Linux => [HostArch::X64, HostArch::Arm64, HostArch::Arm, HostArch::Powerpc64, HostArch::S390x],
             HostOS::MacOS => [HostArch::X64, HostArch::Arm64],
@@ -56,10 +58,10 @@ pub fn download_prebuilt(
         ],
     )?;
 
-    let version = input.env.version;
-    let arch = map_arch(input.env.os, input.env.arch)?;
+    let version = input.state.version;
+    let arch = map_arch(env.os, env.arch)?;
 
-    let prefix = match input.env.os {
+    let prefix = match env.os {
         HostOS::Linux => format!("node-v{version}-linux-{arch}"),
         HostOS::MacOS => {
             let parsed_version = if version == "latest" {
@@ -70,7 +72,7 @@ pub fn download_prebuilt(
 
             // Arm64 support was added after v16, but M1/M2 machines can
             // run x64 binaries via Rosetta. This is a compat hack!
-            if input.env.arch == HostArch::Arm64 && parsed_version.major < 16 {
+            if env.arch == HostArch::Arm64 && parsed_version.major < 16 {
                 format!("node-v{version}-darwin-x64")
             } else {
                 format!("node-v{version}-darwin-{arch}")
@@ -80,7 +82,7 @@ pub fn download_prebuilt(
         _ => unreachable!(),
     };
 
-    let filename = if input.env.os == HostOS::Windows {
+    let filename = if env.os == HostOS::Windows {
         format!("{prefix}.zip")
     } else {
         format!("{prefix}.tar.xz")
@@ -96,9 +98,11 @@ pub fn download_prebuilt(
 }
 
 #[plugin_fn]
-pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+    let env = get_proto_environment()?;
+
     Ok(Json(LocateBinsOutput {
-        bin_path: Some(if input.env.os == HostOS::Windows {
+        bin_path: Some(if env.os == HostOS::Windows {
             format!("{}.exe", BIN).into()
         } else {
             format!("bin/{}", BIN).into()
@@ -165,12 +169,13 @@ pub fn resolve_version(
 }
 
 #[plugin_fn]
-pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
+pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
+    let env = get_proto_environment()?;
     let mut global_shims = HashMap::new();
 
     global_shims.insert(
         "npx".into(),
-        ShimConfig::global_with_alt_bin(if input.env.os == HostOS::Windows {
+        ShimConfig::global_with_alt_bin(if env.os == HostOS::Windows {
             "npx.cmd"
         } else {
             "bin/npx"
@@ -196,7 +201,7 @@ pub fn install_global(
 ) -> FnResult<Json<InstallGlobalOutput>> {
     let result = exec_command!(commands::install_global(
         &input.dependency,
-        &input.globals_dir
+        &input.globals_dir.real_path(),
     ));
 
     Ok(Json(InstallGlobalOutput::from_exec_command(result)))
@@ -208,7 +213,7 @@ pub fn uninstall_global(
 ) -> FnResult<Json<UninstallGlobalOutput>> {
     let result = exec_command!(commands::uninstall_global(
         &input.dependency,
-        &input.globals_dir
+        &input.globals_dir.real_path(),
     ));
 
     Ok(Json(UninstallGlobalOutput::from_exec_command(result)))

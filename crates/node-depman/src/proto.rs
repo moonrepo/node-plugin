@@ -21,10 +21,12 @@ enum PackageManager {
 }
 
 impl PackageManager {
-    pub fn from(env: &Environment) -> PackageManager {
-        if env.id.to_lowercase().contains("yarn") {
+    pub fn detect() -> PackageManager {
+        let id = get_tool_id();
+
+        if id.to_lowercase().contains("yarn") {
             PackageManager::Yarn
-        } else if env.id.to_lowercase().contains("pnpm") {
+        } else if id.to_lowercase().contains("pnpm") {
             PackageManager::Pnpm
         } else {
             PackageManager::Npm
@@ -62,7 +64,9 @@ impl fmt::Display for PackageManager {
 
 #[plugin_fn]
 pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
-    let manager = PackageManager::from(&input.env);
+    set_tool_id(input.id)?;
+
+    let manager = PackageManager::detect();
 
     Ok(Json(ToolMetadataOutput {
         name: manager.to_string(),
@@ -82,8 +86,8 @@ pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<Tool
 pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
-    let version = &input.env.version;
-    let manager = PackageManager::from(&input.env);
+    let version = &input.state.version;
+    let manager = PackageManager::detect();
     let package_name = manager.get_package_name(version);
 
     // Derive values based on package manager
@@ -111,8 +115,8 @@ pub fn download_prebuilt(
 #[plugin_fn]
 pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
     let mut bin_path = None;
-    let package_path = input.tool_dir.join("package.json");
-    let manager = PackageManager::from(&input.env);
+    let package_path = input.state.tool_dir.join("package.json");
+    let manager = PackageManager::detect();
     let manager_name = manager.to_string();
 
     // Extract the binary from the `package.json`
@@ -173,7 +177,7 @@ struct RegistryResponse {
 #[plugin_fn]
 pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
-    let manager = PackageManager::from(&input.env);
+    let manager = PackageManager::detect();
     let package_name = manager.get_package_name(&input.initial);
 
     let mut map_output = |res: RegistryResponse| -> Result<(), Error> {
@@ -220,7 +224,7 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
 pub fn resolve_version(
     Json(input): Json<ResolveVersionInput>,
 ) -> FnResult<Json<ResolveVersionOutput>> {
-    let manager = PackageManager::from(&input.env);
+    let manager = PackageManager::detect();
     let mut output = ResolveVersionOutput::default();
 
     match manager {
@@ -233,7 +237,7 @@ pub fn resolve_version(
                 let mut found_version = false;
 
                 // Infer from proto's environment variable
-                if let Some(node_version) = input.env.vars.get("PROTO_NODE_VERSION") {
+                if let Some(node_version) = input.state.env_vars.get("PROTO_NODE_VERSION") {
                     for node_release in &response {
                         // Theirs starts with v, ours does not
                         if &node_release.version[1..] == node_version {
@@ -285,8 +289,9 @@ pub fn resolve_version(
 }
 
 #[plugin_fn]
-pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
-    let manager = PackageManager::from(&input.env);
+pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
+    let env = get_proto_environment()?;
+    let manager = PackageManager::detect();
     let mut global_shims = HashMap::<String, ShimConfig>::new();
     let mut local_shims = HashMap::<String, ShimConfig>::new();
 
@@ -300,7 +305,7 @@ pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<Create
             // node-gyp
             global_shims.insert(
                 "node-gyp".into(),
-                ShimConfig::global_with_alt_bin(if input.env.os == HostOS::Windows {
+                ShimConfig::global_with_alt_bin(if env.os == HostOS::Windows {
                     "bin/node-gyp-bin/node-gyp.cmd"
                 } else {
                     "bin/node-gyp-bin/node-gyp"
@@ -357,7 +362,7 @@ pub fn parse_version_file(
                 let mut parts = pm.split('@');
                 let name = parts.next().unwrap_or_default();
 
-                if name == PackageManager::from(&input.env).to_string() {
+                if name == PackageManager::detect().to_string() {
                     version = Some(parts.next().unwrap_or("latest").to_owned());
                 }
             }
@@ -373,7 +378,7 @@ pub fn install_global(
 ) -> FnResult<Json<InstallGlobalOutput>> {
     let result = exec_command!(commands::install_global(
         &input.dependency,
-        &input.globals_dir
+        &input.globals_dir.real_path(),
     ));
 
     Ok(Json(InstallGlobalOutput::from_exec_command(result)))
@@ -385,7 +390,7 @@ pub fn uninstall_global(
 ) -> FnResult<Json<UninstallGlobalOutput>> {
     let result = exec_command!(commands::uninstall_global(
         &input.dependency,
-        &input.globals_dir
+        &input.globals_dir.real_path(),
     ));
 
     Ok(Json(UninstallGlobalOutput::from_exec_command(result)))

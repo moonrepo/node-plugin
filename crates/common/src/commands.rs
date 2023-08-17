@@ -1,4 +1,4 @@
-use proto_pdk::ExecCommandInput;
+use proto_pdk_api::ExecCommandInput;
 use std::path::Path;
 
 pub fn install_global(dependency: &str, globals_dir: &Path) -> ExecCommandInput {
