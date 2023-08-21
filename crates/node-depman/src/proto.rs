@@ -63,9 +63,7 @@ impl fmt::Display for PackageManager {
 }
 
 #[plugin_fn]
-pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
-    set_tool_id(input.id)?;
-
+pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
     let manager = PackageManager::detect();
 
     Ok(Json(ToolMetadataOutput {
@@ -86,7 +84,7 @@ pub fn register_tool(Json(input): Json<ToolMetadataInput>) -> FnResult<Json<Tool
 pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
-    let version = &input.state.version;
+    let version = &input.context.version;
     let manager = PackageManager::detect();
     let package_name = manager.get_package_name(version);
 
@@ -115,7 +113,7 @@ pub fn download_prebuilt(
 #[plugin_fn]
 pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
     let mut bin_path = None;
-    let package_path = input.state.tool_dir.join("package.json");
+    let package_path = input.context.tool_dir.join("package.json");
     let manager = PackageManager::detect();
     let manager_name = manager.to_string();
 
@@ -237,7 +235,7 @@ pub fn resolve_version(
                 let mut found_version = false;
 
                 // Infer from proto's environment variable
-                if let Some(node_version) = input.state.env_vars.get("PROTO_NODE_VERSION") {
+                if let Some(node_version) = input.context.env_vars.get("PROTO_NODE_VERSION") {
                     for node_release in &response {
                         // Theirs starts with v, ours does not
                         if &node_release.version[1..] == node_version {

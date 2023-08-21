@@ -5,7 +5,7 @@
 // use utils::*;
 
 mod npm {
-    use super::*;
+    // use super::*;
 
     // #[test]
     // fn errors_if_installing_global() {

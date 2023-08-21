@@ -1,16 +1,8 @@
 use proto_pdk_test_utils::*;
 use starbase_sandbox::create_empty_sandbox;
-use std::path::PathBuf;
 
 fn create_metadata(id: &str) -> ToolMetadataInput {
-    ToolMetadataInput {
-        id: id.into(),
-        env: Environment {
-            id: id.into(),
-            ..Environment::default()
-        },
-        home_dir: PathBuf::new(),
-    }
+    ToolMetadataInput { id: id.into() }
 }
 
 mod npm {

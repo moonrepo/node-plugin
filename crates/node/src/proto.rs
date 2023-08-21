@@ -58,7 +58,7 @@ pub fn download_prebuilt(
         ],
     )?;
 
-    let version = input.state.version;
+    let version = input.context.version;
     let arch = map_arch(env.os, env.arch)?;
 
     let prefix = match env.os {
