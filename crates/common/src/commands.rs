@@ -2,7 +2,7 @@ use proto_pdk_api::ExecCommandInput;
 use std::path::Path;
 
 pub fn install_global(dependency: &str, globals_dir: &Path) -> ExecCommandInput {
-    let mut cmd = ExecCommandInput::pipe(
+    let mut cmd = ExecCommandInput::inherit(
         "npm",
         [
             "install",
@@ -25,7 +25,7 @@ pub fn install_global(dependency: &str, globals_dir: &Path) -> ExecCommandInput 
 }
 
 pub fn uninstall_global(dependency: &str, globals_dir: &Path) -> ExecCommandInput {
-    let mut cmd = ExecCommandInput::pipe(
+    let mut cmd = ExecCommandInput::inherit(
         "npm",
         ["uninstall", "--global", "--loglevel", "warn", dependency],
     );
