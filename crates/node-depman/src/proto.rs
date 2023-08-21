@@ -69,7 +69,7 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
     Ok(Json(ToolMetadataOutput {
         name: manager.to_string(),
         type_of: PluginType::DependencyManager,
-        env_vars: vec!["PROTO_NODE_VERSION".into()],
+        env_vars: vec!["PROTO_NODE_VERSION".into(), "PROTO_INSTALL_GLOBAL".into()],
         default_version: if manager == PackageManager::Npm {
             Some("bundled".into())
         } else {
@@ -392,4 +392,51 @@ pub fn uninstall_global(
     ));
 
     Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
+}
+
+#[plugin_fn]
+pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
+    let args = &input.passthrough_args;
+    let user_config = get_proto_user_config()?;
+
+    if args.len() < 3
+        || input.context.env_vars.get("PROTO_INSTALL_GLOBAL").is_some()
+        || !user_config.node_intercept_globals
+    {
+        return Ok(());
+    }
+
+    let manager = PackageManager::detect();
+    let mut is_install_command = false;
+    let mut is_global = false;
+
+    // npm install -g <dep>
+    // pnpm add -g <dep>
+    if manager == PackageManager::Npm || manager == PackageManager::Yarn {
+        is_install_command = args[0] == "install" || args[0] == "i" || args[0] == "add";
+
+        for arg in args {
+            if arg == "--global" || arg == "-g" || arg == "--location=global" {
+                is_global = true;
+                break;
+            }
+        }
+    }
+
+    // yarn global add <dep>
+    if manager == PackageManager::Yarn {
+        is_global = args[0] == "global";
+        is_install_command = args[1] == "add";
+    }
+
+    if is_install_command && is_global {
+        return err!(format!(
+            "Global binaries must be installed with `proto install-global {}`!\nLearn more: {}\n\nOpt-out of this functionality with `{}`.",
+            manager.to_string(),
+            "https://moonrepo.dev/docs/proto/faq#how-can-i-install-a-global-binary-for-a-language",
+            "node-intercept-globals = false",
+        ));
+    }
+
+    Ok(())
 }

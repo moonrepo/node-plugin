@@ -5,6 +5,7 @@
 #### 🚀 Updates
 
 - Added support for `install_global` and `uninstall_global`.
+- Added `post_install` hook for installing the bundled npm.
 - Updated to support proto v0.15 release.
 
 #### 🐞 Fixes

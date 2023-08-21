@@ -6,6 +6,7 @@ use std::collections::HashMap;
 #[host_fn]
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
+    fn host_log(input: Json<HostLogInput>);
 }
 
 static NAME: &str = "Node.js";
@@ -217,4 +218,38 @@ pub fn uninstall_global(
     ));
 
     Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
+}
+
+#[plugin_fn]
+pub fn post_install(Json(input): Json<InstallHook>) -> FnResult<()> {
+    if input
+        .passthrough_args
+        .iter()
+        .any(|arg| arg == "--no-bundled-npm")
+    {
+        return Ok(());
+    }
+
+    host_log!("Installing npm that comes bundled with Node.js");
+
+    let mut args = vec!["install", "npm", "bundled"];
+
+    if input.pinned {
+        args.push("--pin");
+    }
+
+    if !input.passthrough_args.is_empty() {
+        args.push("--");
+        args.extend(
+            input
+                .passthrough_args
+                .iter()
+                .map(|a| a.as_str())
+                .collect::<Vec<_>>(),
+        );
+    }
+
+    exec_command!(ExecCommandInput::inherit("proto", args));
+
+    Ok(())
 }
