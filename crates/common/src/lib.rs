@@ -1,3 +1,4 @@
+pub mod commands;
 mod node_dist;
 mod package_json;
 

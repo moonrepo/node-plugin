@@ -45,6 +45,7 @@ jobs:
       - uses: moonrepo/setup-rust@v1
         with:
           bins: cargo-wasi, cargo-nextest
+      - uses: moonrepo/setup-proto@v1
       - run: cargo wasi build -p node_plugin
       - run: cargo wasi build -p node_depman_plugin
       - run: cargo nextest run --workspace

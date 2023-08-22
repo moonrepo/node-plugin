@@ -19,10 +19,6 @@ mod npm {
             plugin.parse_version_file(ParseVersionFileInput {
                 content: r#"{ "packageManager": "yarn@1.2.3" }"#.into(),
                 file: "package.json".into(),
-                env: Environment {
-                    id: "npm-test".into(),
-                    ..Environment::default()
-                },
             }),
             ParseVersionFileOutput { version: None }
         );
@@ -37,10 +33,6 @@ mod npm {
             plugin.parse_version_file(ParseVersionFileInput {
                 content: r#"{ "packageManager": "npm@1.2.3" }"#.into(),
                 file: "package.json".into(),
-                env: Environment {
-                    id: "npm-test".into(),
-                    ..Environment::default()
-                },
             }),
             ParseVersionFileOutput {
                 version: Some("1.2.3".into()),
@@ -57,10 +49,6 @@ mod npm {
             plugin.parse_version_file(ParseVersionFileInput {
                 content: r#"{ "packageManager": "npm" }"#.into(),
                 file: "package.json".into(),
-                env: Environment {
-                    id: "npm-test".into(),
-                    ..Environment::default()
-                },
             }),
             ParseVersionFileOutput {
                 version: Some("latest".into()),
@@ -87,10 +75,6 @@ mod pnpm {
             plugin.parse_version_file(ParseVersionFileInput {
                 content: r#"{ "packageManager": "yarn@1.2.3" }"#.into(),
                 file: "package.json".into(),
-                env: Environment {
-                    id: "pnpm-test".into(),
-                    ..Environment::default()
-                },
             }),
             ParseVersionFileOutput { version: None }
         );
@@ -105,10 +89,6 @@ mod pnpm {
             plugin.parse_version_file(ParseVersionFileInput {
                 content: r#"{ "packageManager": "pnpm@1.2.3" }"#.into(),
                 file: "package.json".into(),
-                env: Environment {
-                    id: "pnpm-test".into(),
-                    ..Environment::default()
-                },
             }),
             ParseVersionFileOutput {
                 version: Some("1.2.3".into()),
@@ -125,10 +105,6 @@ mod pnpm {
             plugin.parse_version_file(ParseVersionFileInput {
                 content: r#"{ "packageManager": "pnpm" }"#.into(),
                 file: "package.json".into(),
-                env: Environment {
-                    id: "pnpm-test".into(),
-                    ..Environment::default()
-                },
             }),
             ParseVersionFileOutput {
                 version: Some("latest".into()),
@@ -143,8 +119,8 @@ mod yarn {
     generate_resolve_versions_tests!("yarn-test", {
         "1" => "1.22.19",
         "2" => "2.4.3",
-        "3" => "3.6.1",
-        "berry" => "3.6.1",
+        "3" => "3.6.2",
+        "berry" => "3.6.2",
     });
 
     #[test]
@@ -156,10 +132,6 @@ mod yarn {
             plugin.parse_version_file(ParseVersionFileInput {
                 content: r#"{ "packageManager": "pnpm@1.2.3" }"#.into(),
                 file: "package.json".into(),
-                env: Environment {
-                    id: "yarn-test".into(),
-                    ..Environment::default()
-                },
             }),
             ParseVersionFileOutput { version: None }
         );
@@ -174,10 +146,6 @@ mod yarn {
             plugin.parse_version_file(ParseVersionFileInput {
                 content: r#"{ "packageManager": "yarn@1.2.3" }"#.into(),
                 file: "package.json".into(),
-                env: Environment {
-                    id: "yarn-test".into(),
-                    ..Environment::default()
-                },
             }),
             ParseVersionFileOutput {
                 version: Some("1.2.3".into()),
@@ -194,10 +162,6 @@ mod yarn {
             plugin.parse_version_file(ParseVersionFileInput {
                 content: r#"{ "packageManager": "yarn" }"#.into(),
                 file: "package.json".into(),
-                env: Environment {
-                    id: "yarn-test".into(),
-                    ..Environment::default()
-                },
             }),
             ParseVersionFileOutput {
                 version: Some("latest".into()),

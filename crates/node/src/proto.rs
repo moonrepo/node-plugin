@@ -1,7 +1,13 @@
 use extism_pdk::*;
-use node_common::{NodeDistLTS, NodeDistVersion};
+use node_common::{commands, NodeDistLTS, NodeDistVersion};
 use proto_pdk::*;
 use std::collections::HashMap;
+
+#[host_fn]
+extern "ExtismHost" {
+    fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
+    fn host_log(input: Json<HostLogInput>);
+}
 
 static NAME: &str = "Node.js";
 static BIN: &str = "node";
@@ -12,6 +18,7 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
         name: NAME.into(),
         type_of: PluginType::Language,
         env_vars: vec!["NODE_OPTIONS".into(), "NODE_PATH".into()],
+        plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
         ..ToolMetadataOutput::default()
     }))
 }
@@ -40,9 +47,11 @@ fn map_arch(os: HostOS, arch: HostArch) -> Result<String, PluginError> {
 pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
+    let env = get_proto_environment()?;
+
     check_supported_os_and_arch(
         NAME,
-        &input.env,
+        &env,
         permutations! [
             HostOS::Linux => [HostArch::X64, HostArch::Arm64, HostArch::Arm, HostArch::Powerpc64, HostArch::S390x],
             HostOS::MacOS => [HostArch::X64, HostArch::Arm64],
@@ -50,10 +59,10 @@ pub fn download_prebuilt(
         ],
     )?;
 
-    let version = input.env.version;
-    let arch = map_arch(input.env.os, input.env.arch)?;
+    let version = input.context.version;
+    let arch = map_arch(env.os, env.arch)?;
 
-    let prefix = match input.env.os {
+    let prefix = match env.os {
         HostOS::Linux => format!("node-v{version}-linux-{arch}"),
         HostOS::MacOS => {
             let parsed_version = if version == "latest" {
@@ -64,7 +73,7 @@ pub fn download_prebuilt(
 
             // Arm64 support was added after v16, but M1/M2 machines can
             // run x64 binaries via Rosetta. This is a compat hack!
-            if input.env.arch == HostArch::Arm64 && parsed_version.major < 16 {
+            if env.arch == HostArch::Arm64 && parsed_version.major < 16 {
                 format!("node-v{version}-darwin-x64")
             } else {
                 format!("node-v{version}-darwin-{arch}")
@@ -74,7 +83,7 @@ pub fn download_prebuilt(
         _ => unreachable!(),
     };
 
-    let filename = if input.env.os == HostOS::Windows {
+    let filename = if env.os == HostOS::Windows {
         format!("{prefix}.zip")
     } else {
         format!("{prefix}.tar.xz")
@@ -90,9 +99,11 @@ pub fn download_prebuilt(
 }
 
 #[plugin_fn]
-pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+    let env = get_proto_environment()?;
+
     Ok(Json(LocateBinsOutput {
-        bin_path: Some(if input.env.os == HostOS::Windows {
+        bin_path: Some(if env.os == HostOS::Windows {
             format!("{}.exe", BIN).into()
         } else {
             format!("bin/{}", BIN).into()
@@ -159,12 +170,13 @@ pub fn resolve_version(
 }
 
 #[plugin_fn]
-pub fn create_shims(Json(input): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
+pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
+    let env = get_proto_environment()?;
     let mut global_shims = HashMap::new();
 
     global_shims.insert(
         "npx".into(),
-        ShimConfig::global_with_alt_bin(if input.env.os == HostOS::Windows {
+        ShimConfig::global_with_alt_bin(if env.os == HostOS::Windows {
             "npx.cmd"
         } else {
             "bin/npx"
@@ -182,4 +194,62 @@ pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
     Ok(Json(DetectVersionOutput {
         files: vec![".nvmrc".into(), ".node-version".into()],
     }))
+}
+
+#[plugin_fn]
+pub fn install_global(
+    Json(input): Json<InstallGlobalInput>,
+) -> FnResult<Json<InstallGlobalOutput>> {
+    let result = exec_command!(commands::install_global(
+        &input.dependency,
+        &input.globals_dir.real_path(),
+    ));
+
+    Ok(Json(InstallGlobalOutput::from_exec_command(result)))
+}
+
+#[plugin_fn]
+pub fn uninstall_global(
+    Json(input): Json<UninstallGlobalInput>,
+) -> FnResult<Json<UninstallGlobalOutput>> {
+    let result = exec_command!(commands::uninstall_global(
+        &input.dependency,
+        &input.globals_dir.real_path(),
+    ));
+
+    Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
+}
+
+#[plugin_fn]
+pub fn post_install(Json(input): Json<InstallHook>) -> FnResult<()> {
+    if input
+        .passthrough_args
+        .iter()
+        .any(|arg| arg == "--no-bundled-npm")
+    {
+        return Ok(());
+    }
+
+    host_log!("Installing npm that comes bundled with Node.js");
+
+    let mut args = vec!["install", "npm", "bundled"];
+
+    if input.pinned {
+        args.push("--pin");
+    }
+
+    if !input.passthrough_args.is_empty() {
+        args.push("--");
+        args.extend(
+            input
+                .passthrough_args
+                .iter()
+                .map(|a| a.as_str())
+                .collect::<Vec<_>>(),
+        );
+    }
+
+    exec_command!(inherit, "proto", args);
+
+    Ok(())
 }

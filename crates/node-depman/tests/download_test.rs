@@ -1,6 +1,5 @@
 use proto_pdk_test_utils::*;
 use starbase_sandbox::create_empty_sandbox;
-use std::path::PathBuf;
 
 mod npm {
     use super::*;
@@ -10,14 +9,17 @@ mod npm {
     #[test]
     fn supports_prebuilt() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("npm-test", sandbox.path());
+        let mut plugin = create_plugin("npm-test", sandbox.path());
+
+        plugin.set_environment(HostEnvironment {
+            arch: HostArch::Arm64,
+            os: HostOS::Linux,
+            ..Default::default()
+        });
 
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
-                env: Environment {
-                    arch: HostArch::Arm64,
-                    id: "npm".into(),
-                    os: HostOS::Linux,
+                context: ToolContext {
                     version: "9.0.0".into(),
                     ..Default::default()
                 }
@@ -35,20 +37,21 @@ mod npm {
     #[test]
     fn locates_default_bin() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("npm-test", sandbox.path());
+        let mut plugin = create_plugin("npm-test", sandbox.path());
+
+        plugin.set_environment(HostEnvironment {
+            arch: HostArch::Arm64,
+            os: HostOS::Linux,
+            ..Default::default()
+        });
 
         assert_eq!(
             plugin
                 .locate_bins(LocateBinsInput {
-                    env: Environment {
-                        arch: HostArch::Arm64,
-                        id: "npm".into(),
-                        os: HostOS::Linux,
+                    context: ToolContext {
                         version: "9.0.0".into(),
                         ..Default::default()
                     },
-                    home_dir: PathBuf::new(),
-                    tool_dir: PathBuf::new(),
                 })
                 .bin_path,
             Some("bin/npm".into())
@@ -64,14 +67,17 @@ mod pnpm {
     #[test]
     fn supports_prebuilt() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("pnpm-test", sandbox.path());
+        let mut plugin = create_plugin("pnpm-test", sandbox.path());
+
+        plugin.set_environment(HostEnvironment {
+            arch: HostArch::X64,
+            os: HostOS::Windows,
+            ..Default::default()
+        });
 
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
-                env: Environment {
-                    arch: HostArch::X64,
-                    id: "pnpm".into(),
-                    os: HostOS::Windows,
+                context: ToolContext {
                     version: "8.0.0".into(),
                     ..Default::default()
                 }
@@ -89,20 +95,21 @@ mod pnpm {
     #[test]
     fn locates_default_bin() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("pnpm-test", sandbox.path());
+        let mut plugin = create_plugin("pnpm-test", sandbox.path());
+
+        plugin.set_environment(HostEnvironment {
+            arch: HostArch::X64,
+            os: HostOS::Windows,
+            ..Default::default()
+        });
 
         assert_eq!(
             plugin
                 .locate_bins(LocateBinsInput {
-                    env: Environment {
-                        arch: HostArch::X64,
-                        id: "pnpm".into(),
-                        os: HostOS::Windows,
+                    context: ToolContext {
                         version: "8.0.0".into(),
                         ..Default::default()
                     },
-                    home_dir: PathBuf::new(),
-                    tool_dir: PathBuf::new(),
                 })
                 .bin_path,
             Some("bin/pnpm.cjs".into())
@@ -118,14 +125,17 @@ mod yarn {
     #[test]
     fn supports_prebuilt() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
+        let mut plugin = create_plugin("yarn-test", sandbox.path());
+
+        plugin.set_environment(HostEnvironment {
+            arch: HostArch::X64,
+            os: HostOS::MacOS,
+            ..Default::default()
+        });
 
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
-                env: Environment {
-                    arch: HostArch::X64,
-                    id: "yarn".into(),
-                    os: HostOS::MacOS,
+                context: ToolContext {
                     version: "1.22.0".into(),
                     ..Default::default()
                 }
@@ -143,20 +153,21 @@ mod yarn {
     #[test]
     fn locates_default_bin() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
+        let mut plugin = create_plugin("yarn-test", sandbox.path());
+
+        plugin.set_environment(HostEnvironment {
+            arch: HostArch::X64,
+            os: HostOS::MacOS,
+            ..Default::default()
+        });
 
         assert_eq!(
             plugin
                 .locate_bins(LocateBinsInput {
-                    env: Environment {
-                        arch: HostArch::X64,
-                        id: "yarn".into(),
-                        os: HostOS::MacOS,
+                    context: ToolContext {
                         version: "1.22.0".into(),
                         ..Default::default()
                     },
-                    home_dir: PathBuf::new(),
-                    tool_dir: PathBuf::new(),
                 })
                 .bin_path,
             Some("bin/yarn".into())
@@ -172,14 +183,17 @@ mod yarn_berry {
     #[test]
     fn supports_prebuilt() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
+        let mut plugin = create_plugin("yarn-test", sandbox.path());
+
+        plugin.set_environment(HostEnvironment {
+            arch: HostArch::X64,
+            os: HostOS::MacOS,
+            ..Default::default()
+        });
 
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
-                env: Environment {
-                    arch: HostArch::X64,
-                    id: "yarn".into(),
-                    os: HostOS::MacOS,
+                context: ToolContext {
                     version: "3.6.1".into(),
                     ..Default::default()
                 }
@@ -198,20 +212,21 @@ mod yarn_berry {
     #[test]
     fn locates_default_bin() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
+        let mut plugin = create_plugin("yarn-test", sandbox.path());
+
+        plugin.set_environment(HostEnvironment {
+            arch: HostArch::X64,
+            os: HostOS::MacOS,
+            ..Default::default()
+        });
 
         assert_eq!(
             plugin
                 .locate_bins(LocateBinsInput {
-                    env: Environment {
-                        arch: HostArch::X64,
-                        id: "yarn".into(),
-                        os: HostOS::MacOS,
+                    context: ToolContext {
                         version: "3.6.1".into(),
                         ..Default::default()
                     },
-                    home_dir: PathBuf::new(),
-                    tool_dir: PathBuf::new(),
                 })
                 .bin_path,
             Some("bin/yarn".into())
@@ -231,24 +246,31 @@ fn locates_bin_from_package_json_bin() {
 }"#,
     );
 
-    let plugin = create_plugin("npm-test", sandbox.path());
+    let mut plugin = create_plugin("npm-test", sandbox.path());
+
+    plugin.set_environment(HostEnvironment {
+        arch: HostArch::X64,
+        os: HostOS::Windows,
+        ..Default::default()
+    });
 
     assert_eq!(
         plugin
             .locate_bins(LocateBinsInput {
-                env: Environment {
-                    arch: HostArch::X64,
-                    id: "npm".into(),
-                    os: HostOS::Windows,
+                context: ToolContext {
                     version: "20.0.0".into(),
                     ..Default::default()
                 },
-                home_dir: PathBuf::new(),
-                tool_dir: plugin.to_virtual_path(&plugin.tool.get_tool_dir()),
             })
             .bin_path,
         Some("./file.js".into())
     );
+
+    plugin.set_environment(HostEnvironment {
+        arch: HostArch::Arm64,
+        os: HostOS::Linux,
+        ..Default::default()
+    });
 
     sandbox.create_file(
         ".proto/tools/npm-test/latest/package.json",
@@ -265,15 +287,10 @@ fn locates_bin_from_package_json_bin() {
     assert_eq!(
         plugin
             .locate_bins(LocateBinsInput {
-                env: Environment {
-                    arch: HostArch::Arm64,
-                    id: "npm".into(),
-                    os: HostOS::Linux,
+                context: ToolContext {
                     version: "9.0.0".into(),
                     ..Default::default()
                 },
-                home_dir: PathBuf::new(),
-                tool_dir: plugin.to_virtual_path(&plugin.tool.get_tool_dir()),
             })
             .bin_path,
         Some("./npm.js".into())
@@ -291,20 +308,21 @@ fn locates_bin_from_package_json_main() {
 }"#,
     );
 
-    let plugin = create_plugin("npm-test", sandbox.path());
+    let mut plugin = create_plugin("npm-test", sandbox.path());
+
+    plugin.set_environment(HostEnvironment {
+        arch: HostArch::X64,
+        os: HostOS::MacOS,
+        ..Default::default()
+    });
 
     assert_eq!(
         plugin
             .locate_bins(LocateBinsInput {
-                env: Environment {
-                    arch: HostArch::X64,
-                    id: "npm".into(),
-                    os: HostOS::MacOS,
+                context: ToolContext {
                     version: "8.0.0".into(),
                     ..Default::default()
                 },
-                home_dir: PathBuf::new(),
-                tool_dir: plugin.to_virtual_path(&plugin.tool.get_tool_dir()),
             })
             .bin_path,
         Some("./index.js".into())

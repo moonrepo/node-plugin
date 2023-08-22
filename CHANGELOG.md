@@ -1,10 +1,23 @@
 # Changelog
 
+## 0.2.0
+
+#### 🚀 Updates
+
+- Added support for `install_global` and `uninstall_global`.
+- Added `post_install` hook for installing the bundled npm.
+- Updated to support proto v0.15 release.
+
+#### 🐞 Fixes
+
+- **npm**
+  - Will no longer crash when parsing an invalid `package.json`.
+
 ## 0.1.0
 
 #### 💥 Breaking
 
-- Will now longer check `engines` in `package.json` when detecting a version.
+- Will no longer check `engines` in `package.json` when detecting a version.
 
 #### 🚀 Updates
 

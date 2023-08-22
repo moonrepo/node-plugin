@@ -1,16 +1,8 @@
 use proto_pdk_test_utils::*;
 use starbase_sandbox::create_empty_sandbox;
-use std::path::PathBuf;
 
 fn create_metadata(id: &str) -> ToolMetadataInput {
-    ToolMetadataInput {
-        id: id.into(),
-        env: Environment {
-            id: id.into(),
-            ..Environment::default()
-        },
-        home_dir: PathBuf::new(),
-    }
+    ToolMetadataInput { id: id.into() }
 }
 
 mod npm {
@@ -26,8 +18,9 @@ mod npm {
             ToolMetadataOutput {
                 name: "npm".into(),
                 type_of: PluginType::DependencyManager,
-                env_vars: vec!["PROTO_NODE_VERSION".into()],
+                env_vars: vec!["PROTO_NODE_VERSION".into(), "PROTO_INSTALL_GLOBAL".into()],
                 default_version: Some("bundled".into()),
+                plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
                 ..ToolMetadataOutput::default()
             }
         );
@@ -47,7 +40,8 @@ mod pnpm {
             ToolMetadataOutput {
                 name: "pnpm".into(),
                 type_of: PluginType::DependencyManager,
-                env_vars: vec!["PROTO_NODE_VERSION".into()],
+                env_vars: vec!["PROTO_NODE_VERSION".into(), "PROTO_INSTALL_GLOBAL".into()],
+                plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
                 ..ToolMetadataOutput::default()
             }
         );
@@ -67,7 +61,8 @@ mod yarn {
             ToolMetadataOutput {
                 name: "yarn".into(),
                 type_of: PluginType::DependencyManager,
-                env_vars: vec!["PROTO_NODE_VERSION".into()],
+                env_vars: vec!["PROTO_NODE_VERSION".into(), "PROTO_INSTALL_GLOBAL".into()],
+                plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
                 ..ToolMetadataOutput::default()
             }
         );
