@@ -412,7 +412,7 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
 
     // npm install -g <dep>
     // pnpm add -g <dep>
-    if manager == PackageManager::Npm || manager == PackageManager::Yarn {
+    if manager == PackageManager::Npm || manager == PackageManager::Pnpm {
         is_install_command = args[0] == "install" || args[0] == "i" || args[0] == "add";
 
         for arg in args {

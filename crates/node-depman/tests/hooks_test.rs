@@ -1,110 +1,129 @@
-// mod utils;
+use proto_pdk::{RunHook, ToolContext, UserConfigSettings};
+use proto_pdk_test_utils::create_plugin;
+use starbase_sandbox::create_empty_sandbox;
+use std::collections::HashMap;
 
-// use starbase_sandbox::predicates::prelude::*;
-// use std::env;
-// use utils::*;
+mod npm_hooks {
+    use super::*;
 
-mod npm {
-    // use super::*;
+    #[test]
+    fn does_nothing_if_no_args() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("npm-test", sandbox.path());
 
-    // #[test]
-    // fn errors_if_installing_global() {
-    //     let temp = create_empty_sandbox();
+        plugin.pre_run(RunHook::default());
+    }
 
-    //     let mut cmd = create_proto_command(temp.path());
-    //     cmd.arg("install")
-    //         .arg("npm")
-    //         .arg("latest")
-    //         .assert()
-    //         .success();
+    #[test]
+    fn skips_when_env_var_set() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("npm-test", sandbox.path());
 
-    //     let mut cmd = create_proto_command(temp.path());
-    //     let assert = cmd
-    //         .arg("run")
-    //         .arg("npm")
-    //         .arg("latest")
-    //         .args(["--", "install", "-g", "typescript"])
-    //         .assert();
+        plugin.pre_run(RunHook {
+            passthrough_args: vec!["install".into(), "-g".into(), "typescript".into()],
+            context: ToolContext {
+                env_vars: HashMap::from_iter([("PROTO_INSTALL_GLOBAL".into(), "1".into())]),
+                ..ToolContext::default()
+            },
+        });
+    }
 
-    //     assert.stderr(predicate::str::contains(
-    //         "Global binaries must be installed with proto install-global npm",
-    //     ));
-    // }
+    #[test]
+    fn can_bypass_with_user_config() {
+        let sandbox = create_empty_sandbox();
+        let mut plugin = create_plugin("npm-test", sandbox.path());
 
-    // #[test]
-    // fn can_bypass_global_check() {
-    //     let temp = create_empty_sandbox();
+        plugin.tool.plugin.manifest.config.insert(
+            "proto_user_config".into(),
+            serde_json::to_string(&UserConfigSettings {
+                node_intercept_globals: false,
+                ..UserConfigSettings::default()
+            })
+            .unwrap(),
+        );
 
-    //     let mut cmd = create_proto_command(temp.path());
-    //     cmd.arg("install")
-    //         .arg("npm")
-    //         .arg("latest")
-    //         .assert()
-    //         .success();
+        plugin.tool.plugin.reload_config().unwrap();
 
-    //     env::set_var("PROTO_NODE_INTERCEPT_GLOBALS", "0");
+        plugin.pre_run(RunHook {
+            passthrough_args: vec!["install".into(), "-g".into(), "typescript".into()],
+            ..RunHook::default()
+        });
+    }
 
-    //     let mut cmd = create_proto_command(temp.path());
-    //     let assert = cmd
-    //         .arg("run")
-    //         .arg("npm")
-    //         .arg("latest")
-    //         .args(["--", "install", "-g", "typescript"])
-    //         .assert();
+    #[test]
+    #[should_panic(expected = "Global binaries must be installed")]
+    fn errors_if_installing_global() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("npm-test", sandbox.path());
 
-    //     env::remove_var("PROTO_NODE_INTERCEPT_GLOBALS");
+        plugin.pre_run(RunHook {
+            passthrough_args: vec!["install".into(), "-g".into(), "typescript".into()],
+            ..RunHook::default()
+        });
+    }
 
-    //     assert.stderr(
-    //         predicate::str::contains(
-    //             "Global binaries must be installed with proto install-global npm",
-    //         )
-    //         .not(),
-    //     );
-    // }
+    #[test]
+    fn doesnt_error_for_other_commands() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("npm-test", sandbox.path());
+
+        plugin.pre_run(RunHook {
+            passthrough_args: vec!["info".into(), "--json".into(), "typescript".into()],
+            ..RunHook::default()
+        });
+    }
 }
 
-mod pnpm {
-    // use super::*;
+mod pnpm_hooks {
+    use super::*;
 
-    // #[test]
-    // fn errors_if_installing_global() {
-    //     let temp = create_empty_sandbox();
+    #[test]
+    #[should_panic(expected = "Global binaries must be installed")]
+    fn errors_if_installing_global() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("pnpm-test", sandbox.path());
 
-    //     let mut cmd = create_proto_command(temp.path());
-    //     cmd.arg("install").arg("pnpm").assert().success();
+        plugin.pre_run(RunHook {
+            passthrough_args: vec!["add".into(), "--global".into(), "typescript".into()],
+            ..RunHook::default()
+        });
+    }
 
-    //     let mut cmd = create_proto_command(temp.path());
-    //     let assert = cmd
-    //         .arg("run")
-    //         .arg("pnpm")
-    //         .args(["--", "add", "-g", "typescript"])
-    //         .assert();
+    #[test]
+    fn doesnt_error_for_other_commands() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("pnpm-test", sandbox.path());
 
-    //     assert.stderr(predicate::str::contains(
-    //         "Global binaries must be installed with proto install-global pnpm",
-    //     ));
-    // }
+        plugin.pre_run(RunHook {
+            passthrough_args: vec!["info".into(), "--json".into(), "typescript".into()],
+            ..RunHook::default()
+        });
+    }
 }
 
-mod yarn {
-    // use super::*;
+mod yarn_hooks {
+    use super::*;
 
-    // #[test]
-    // fn errors_if_installing_global() {
-    //     let temp = create_empty_sandbox();
+    #[test]
+    #[should_panic(expected = "Global binaries must be installed")]
+    fn errors_if_installing_global() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("yarn-test", sandbox.path());
 
-    //     let mut cmd = create_proto_command(temp.path());
-    //     cmd.arg("install").arg("yarn").assert().success();
+        plugin.pre_run(RunHook {
+            passthrough_args: vec!["global".into(), "add".into(), "typescript".into()],
+            ..RunHook::default()
+        });
+    }
 
-    //     let mut cmd = create_proto_command(temp.path());
-    //     let assert = cmd
-    //         .arg("run")
-    //         .arg("yarn")
-    //         .args(["--", "global", "add", "typescript"])
-    //         .assert();
+    #[test]
+    fn doesnt_error_for_other_commands() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("yarn-test", sandbox.path());
 
-    //     assert.stderr(predicate::str::contains(
-    //         "Global binaries must be installed with proto install-global yarn",
-    //     ));
-    // }
+        plugin.pre_run(RunHook {
+            passthrough_args: vec!["info".into(), "--json".into(), "typescript".into()],
+            ..RunHook::default()
+        });
+    }
 }
