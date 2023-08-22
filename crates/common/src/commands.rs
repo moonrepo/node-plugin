@@ -15,6 +15,9 @@ pub fn install_global(dependency: &str, globals_dir: &Path) -> ExecCommandInput 
         ],
     );
 
+    cmd.env_vars
+        .insert("PROTO_INSTALL_GLOBAL".into(), "true".into());
+
     // Remove the /bin component
     cmd.env_vars.insert(
         "PREFIX".into(),
@@ -29,6 +32,9 @@ pub fn uninstall_global(dependency: &str, globals_dir: &Path) -> ExecCommandInpu
         "npm",
         ["uninstall", "--global", "--loglevel", "warn", dependency],
     );
+
+    cmd.env_vars
+        .insert("PROTO_INSTALL_GLOBAL".into(), "true".into());
 
     // Remove the /bin component
     cmd.env_vars.insert(
