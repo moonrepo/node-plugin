@@ -1,10 +1,10 @@
 use proto_pdk::InstallHook;
 use proto_pdk_test_utils::{core::AliasOrVersion, create_plugin, ToolManifest, Version};
+use serial_test::serial;
 use starbase_sandbox::create_empty_sandbox;
 use std::collections::HashSet;
 use std::env;
 use std::path::PathBuf;
-use serial_test::serial;
 
 fn set_vars(path: PathBuf) {
     env::set_var("PROTO_ROOT", path.to_string_lossy().to_string());
