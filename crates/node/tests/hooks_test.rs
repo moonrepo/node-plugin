@@ -4,6 +4,7 @@ use starbase_sandbox::create_empty_sandbox;
 use std::collections::HashSet;
 use std::env;
 use std::path::PathBuf;
+use serial_test::serial;
 
 fn set_vars(path: PathBuf) {
     env::set_var("PROTO_ROOT", path.to_string_lossy().to_string());
@@ -19,6 +20,7 @@ mod node_hooks {
     use super::*;
 
     #[test]
+    #[serial]
     fn installs_bundled_npm() {
         let sandbox = create_empty_sandbox();
         let plugin = create_plugin("node-test", sandbox.path());
@@ -47,6 +49,7 @@ mod node_hooks {
     }
 
     #[test]
+    #[serial]
     fn can_pin_bundled_npm() {
         let sandbox = create_empty_sandbox();
         let plugin = create_plugin("node-test", sandbox.path());
@@ -70,6 +73,7 @@ mod node_hooks {
     }
 
     #[test]
+    #[serial]
     fn can_skip_bundled_npm() {
         let sandbox = create_empty_sandbox();
         let plugin = create_plugin("node-test", sandbox.path());

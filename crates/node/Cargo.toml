@@ -16,5 +16,6 @@ serde = { workspace = true }
 
 [dev-dependencies]
 proto_pdk_test_utils = { workspace = true }
+serial_test = "2.0.0"
 starbase_sandbox = { workspace = true }
 tokio = { workspace = true }
