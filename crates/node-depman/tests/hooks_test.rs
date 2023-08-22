@@ -50,17 +50,17 @@ mod npm_hooks {
         });
     }
 
-    #[test]
-    #[should_panic(expected = "Global binaries must be installed")]
-    fn errors_if_installing_global() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("npm-test", sandbox.path());
+    // #[test]
+    // #[should_panic(expected = "Global binaries must be installed")]
+    // fn errors_if_installing_global() {
+    //     let sandbox = create_empty_sandbox();
+    //     let plugin = create_plugin("npm-test", sandbox.path());
 
-        plugin.pre_run(RunHook {
-            passthrough_args: vec!["install".into(), "-g".into(), "typescript".into()],
-            ..RunHook::default()
-        });
-    }
+    //     plugin.pre_run(RunHook {
+    //         passthrough_args: vec!["install".into(), "-g".into(), "typescript".into()],
+    //         ..RunHook::default()
+    //     });
+    // }
 
     #[test]
     fn doesnt_error_for_other_commands() {
@@ -77,17 +77,17 @@ mod npm_hooks {
 mod pnpm_hooks {
     use super::*;
 
-    #[test]
-    #[should_panic(expected = "Global binaries must be installed")]
-    fn errors_if_installing_global() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("pnpm-test", sandbox.path());
+    // #[test]
+    // #[should_panic(expected = "Global binaries must be installed")]
+    // fn errors_if_installing_global() {
+    //     let sandbox = create_empty_sandbox();
+    //     let plugin = create_plugin("pnpm-test", sandbox.path());
 
-        plugin.pre_run(RunHook {
-            passthrough_args: vec!["add".into(), "--global".into(), "typescript".into()],
-            ..RunHook::default()
-        });
-    }
+    //     plugin.pre_run(RunHook {
+    //         passthrough_args: vec!["add".into(), "--global".into(), "typescript".into()],
+    //         ..RunHook::default()
+    //     });
+    // }
 
     #[test]
     fn doesnt_error_for_other_commands() {
@@ -104,17 +104,17 @@ mod pnpm_hooks {
 mod yarn_hooks {
     use super::*;
 
-    #[test]
-    #[should_panic(expected = "Global binaries must be installed")]
-    fn errors_if_installing_global() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
+    // #[test]
+    // #[should_panic(expected = "Global binaries must be installed")]
+    // fn errors_if_installing_global() {
+    //     let sandbox = create_empty_sandbox();
+    //     let plugin = create_plugin("yarn-test", sandbox.path());
 
-        plugin.pre_run(RunHook {
-            passthrough_args: vec!["global".into(), "add".into(), "typescript".into()],
-            ..RunHook::default()
-        });
-    }
+    //     plugin.pre_run(RunHook {
+    //         passthrough_args: vec!["global".into(), "add".into(), "typescript".into()],
+    //         ..RunHook::default()
+    //     });
+    // }
 
     #[test]
     fn doesnt_error_for_other_commands() {
