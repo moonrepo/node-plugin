@@ -1,50 +1,90 @@
-// TODO: Enable once 0.15 lands
+use proto_pdk::InstallHook;
+use proto_pdk_test_utils::{core::AliasOrVersion, create_plugin, ToolManifest, Version};
+use starbase_sandbox::create_empty_sandbox;
+use std::collections::HashSet;
+use std::env;
+use std::path::PathBuf;
 
-// #[test]
-// fn installs_bundled_npm() {
-//     let temp = create_empty_sandbox();
+fn set_vars(path: PathBuf) {
+    env::set_var("PROTO_ROOT", path.to_string_lossy().to_string());
+    env::set_var("PROTO_NODE_VERSION", "18.0.0");
+}
 
-//     let mut cmd = create_proto_command(temp.path());
-//     let assert = cmd.arg("install").arg("node").arg("19.0.0").assert();
+fn reset_vars() {
+    env::remove_var("PROTO_ROOT");
+    env::remove_var("PROTO_NODE_VERSION");
+}
 
-//     let output = output_to_string(&assert.get_output().stderr.to_vec());
+mod node_hooks {
+    use super::*;
 
-//     assert!(predicate::str::contains("Node.js has been installed").eval(&output));
-//     assert!(predicate::str::contains("npm has been installed").eval(&output));
+    #[test]
+    fn installs_bundled_npm() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("node-test", sandbox.path());
 
-//     assert!(temp.path().join("tools/node/19.0.0").exists());
-//     assert!(temp.path().join("tools/npm/8.19.2").exists());
+        assert!(!sandbox.path().join(".proto/tools/npm/8.6.0").exists());
 
-//     let manifest = ToolManifest::load(temp.path().join("tools/npm/manifest.json")).unwrap();
+        set_vars(sandbox.path().join(".proto"));
 
-//     assert_eq!(
-//         manifest.default_version,
-//         Some(AliasOrVersion::parse("bundled").unwrap())
-//     );
-//     assert_eq!(
-//         manifest.installed_versions,
-//         HashSet::from_iter([Version::parse("8.19.2").unwrap()])
-//     );
-// }
+        plugin.post_install(InstallHook::default());
 
-// #[test]
-// fn skips_bundled_npm() {
-//     let temp = create_empty_sandbox();
+        reset_vars();
 
-//     let mut cmd = create_proto_command(temp.path());
-//     let assert = cmd
-//         .arg("install")
-//         .arg("node")
-//         .arg("19.0.0")
-//         .arg("--")
-//         .arg("--no-bundled-npm")
-//         .assert();
+        assert!(sandbox.path().join(".proto/tools/npm/8.6.0").exists());
 
-//     let output = output_to_string(&assert.get_output().stderr.to_vec());
+        let manifest =
+            ToolManifest::load(sandbox.path().join(".proto/tools/npm/manifest.json")).unwrap();
 
-//     assert!(predicate::str::contains("Node.js has been installed").eval(&output));
-//     assert!(!predicate::str::contains("npm has been installed").eval(&output));
+        assert_eq!(
+            manifest.default_version,
+            Some(AliasOrVersion::parse("bundled").unwrap())
+        );
+        assert_eq!(
+            manifest.installed_versions,
+            HashSet::from_iter([Version::parse("8.6.0").unwrap()])
+        );
+    }
 
-//     assert!(temp.path().join("tools/node/19.0.0").exists());
-//     assert!(!temp.path().join("tools/npm/8.19.2").exists());
-// }
+    #[test]
+    fn can_pin_bundled_npm() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("node-test", sandbox.path());
+
+        set_vars(sandbox.path().join(".proto"));
+
+        plugin.post_install(InstallHook {
+            pinned: true,
+            ..InstallHook::default()
+        });
+
+        reset_vars();
+
+        let manifest =
+            ToolManifest::load(sandbox.path().join(".proto/tools/npm/manifest.json")).unwrap();
+
+        assert_eq!(
+            manifest.default_version,
+            Some(AliasOrVersion::parse("8.6.0").unwrap())
+        );
+    }
+
+    #[test]
+    fn can_skip_bundled_npm() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("node-test", sandbox.path());
+
+        assert!(!sandbox.path().join(".proto/tools/npm/8.6.0").exists());
+
+        set_vars(sandbox.path().join(".proto"));
+
+        plugin.post_install(InstallHook {
+            passthrough_args: vec!["--no-bundled-npm".into()],
+            ..InstallHook::default()
+        });
+
+        reset_vars();
+
+        assert!(!sandbox.path().join(".proto/tools/npm/8.6.0").exists());
+    }
+}

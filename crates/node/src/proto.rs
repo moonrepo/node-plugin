@@ -249,7 +249,7 @@ pub fn post_install(Json(input): Json<InstallHook>) -> FnResult<()> {
         );
     }
 
-    exec_command!(ExecCommandInput::inherit("proto", args));
+    exec_command!(inherit, "proto", args);
 
     Ok(())
 }
