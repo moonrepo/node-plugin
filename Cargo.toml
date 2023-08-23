@@ -7,7 +7,7 @@ extism-pdk = "0.3.3"
 proto_pdk = { version = "0.6.2" }            # , path = "../../proto/crates/pdk" }
 proto_pdk_api = { version = "0.6.0" }        # , path = "../../proto/crates/pdk-api" }
 proto_pdk_test_utils = { version = "0.5.5" } # , path = "../../proto/crates/pdk-test-utils" }
-serde = "1.0.183"
+serde = "1.0.185"
 serde_json = "1.0.105"
 starbase_sandbox = "0.1.8"
-tokio = "1.31.0"
+tokio = "1.32.0"
