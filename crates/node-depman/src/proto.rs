@@ -364,12 +364,22 @@ pub fn parse_version_file(
 
     if input.file == "package.json" {
         if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
+            let manager_name = PackageManager::detect().to_string();
+
             if let Some(pm) = package_json.package_manager {
                 let mut parts = pm.split('@');
                 let name = parts.next().unwrap_or_default();
 
-                if name == PackageManager::detect().to_string() {
+                if name == manager_name {
                     version = Some(parts.next().unwrap_or("latest").to_owned());
+                }
+            }
+
+            if version.is_none() {
+                if let Some(engines) = package_json.engines {
+                    if let Some(constraint) = engines.get(&manager_name) {
+                        version = Some(constraint.to_owned());
+                    }
                 }
             }
         }

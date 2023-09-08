@@ -49,3 +49,19 @@ fn sets_lts_aliases() {
         ]
     );
 }
+
+#[test]
+fn parses_engines() {
+    let sandbox = create_empty_sandbox();
+    let plugin = create_plugin("node-test", sandbox.path());
+
+    assert_eq!(
+        plugin.parse_version_file(ParseVersionFileInput {
+            content: r#"{ "engines": { "node": ">=16" } }"#.into(),
+            file: "package.json".into(),
+        }),
+        ParseVersionFileOutput {
+            version: Some(">=16".into()),
+        }
+    );
+}
