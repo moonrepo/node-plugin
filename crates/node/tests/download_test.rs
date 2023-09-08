@@ -3,6 +3,12 @@ use starbase_sandbox::create_empty_sandbox;
 
 generate_download_install_tests!("node-test", "18.0.0");
 
+mod canary {
+    use super::*;
+
+    generate_download_install_tests!("node-test", "canary");
+}
+
 #[test]
 fn supports_linux_arm64() {
     let sandbox = create_empty_sandbox();

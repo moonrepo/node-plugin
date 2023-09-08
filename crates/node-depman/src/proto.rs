@@ -86,6 +86,14 @@ pub fn download_prebuilt(
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
     let version = &input.context.version;
     let manager = PackageManager::detect();
+
+    if version == "canary" {
+        return err!(PluginError::UnsupportedCanary {
+            tool: manager.to_string()
+        }
+        .into());
+    }
+
     let package_name = manager.get_package_name(version);
 
     // Derive values based on package manager
@@ -231,7 +239,7 @@ pub fn resolve_version(
             // version that comes bundled with the current Node.js version.
             if input.initial == "bundled" {
                 let response: Vec<NodeDistVersion> =
-                    fetch_url_with_cache("https://nodejs.org/dist/index.json")?;
+                    fetch_url_with_cache("https://nodejs.org/download/release/index.json")?;
                 let mut found_version = false;
 
                 // Infer from proto's environment variable
