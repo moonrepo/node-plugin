@@ -430,12 +430,12 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
     }
 
     if is_install_command && is_global {
-        return err!(format!(
+        return err!(
             "Global binaries must be installed with `proto install-global {}`!\nLearn more: {}\n\nOpt-out of this functionality with `{}`.",
             manager.to_string(),
             "https://moonrepo.dev/docs/proto/faq#how-can-i-install-a-global-binary-for-a-language",
             "node-intercept-globals = false",
-        ));
+        );
     }
 
     Ok(())
