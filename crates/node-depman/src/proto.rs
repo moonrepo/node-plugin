@@ -86,6 +86,14 @@ pub fn download_prebuilt(
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
     let version = &input.context.version;
     let manager = PackageManager::detect();
+
+    if version == "canary" {
+        return err!(PluginError::UnsupportedCanary {
+            tool: manager.to_string()
+        }
+        .into());
+    }
+
     let package_name = manager.get_package_name(version);
 
     // Derive values based on package manager
@@ -231,7 +239,7 @@ pub fn resolve_version(
             // version that comes bundled with the current Node.js version.
             if input.initial == "bundled" {
                 let response: Vec<NodeDistVersion> =
-                    fetch_url_with_cache("https://nodejs.org/dist/index.json")?;
+                    fetch_url_with_cache("https://nodejs.org/download/release/index.json")?;
                 let mut found_version = false;
 
                 // Infer from proto's environment variable
@@ -248,15 +256,18 @@ pub fn resolve_version(
 
                 // Otherwise call the current `node` binary and infer from that
                 if !found_version {
-                    let node_version = exec_command!("node", ["--version"]);
-                    let node_version = node_version.stdout.trim();
+                    let result = exec_command!("node", ["--version"]);
 
-                    for node_release in &response {
-                        // Both start with v
-                        if node_release.version == node_version {
-                            output.version = node_release.npm.clone();
-                            found_version = true;
-                            break;
+                    if result.exit_code == 0 {
+                        let node_version = result.stdout.trim();
+
+                        for node_release in &response {
+                            // Both start with v
+                            if node_release.version == node_version {
+                                output.version = node_release.npm.clone();
+                                found_version = true;
+                                break;
+                            }
                         }
                     }
                 }
@@ -356,12 +367,22 @@ pub fn parse_version_file(
 
     if input.file == "package.json" {
         if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
+            let manager_name = PackageManager::detect().to_string();
+
             if let Some(pm) = package_json.package_manager {
                 let mut parts = pm.split('@');
                 let name = parts.next().unwrap_or_default();
 
-                if name == PackageManager::detect().to_string() {
+                if name == manager_name {
                     version = Some(parts.next().unwrap_or("latest").to_owned());
+                }
+            }
+
+            if version.is_none() {
+                if let Some(engines) = package_json.engines {
+                    if let Some(constraint) = engines.get(&manager_name) {
+                        version = Some(constraint.to_owned());
+                    }
                 }
             }
         }
@@ -430,12 +451,12 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
     }
 
     if is_install_command && is_global {
-        return err!(format!(
+        return err!(
             "Global binaries must be installed with `proto install-global {}`!\nLearn more: {}\n\nOpt-out of this functionality with `{}`.",
             manager.to_string(),
             "https://moonrepo.dev/docs/proto/faq#how-can-i-install-a-global-binary-for-a-language",
             "node-intercept-globals = false",
-        ));
+        );
     }
 
     Ok(())

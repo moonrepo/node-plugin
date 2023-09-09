@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.0
+
+#### 🚀 Updates
+
+- Added support for installing the canary release (when applicable).
+- Brought back support for detecting a version from `package.json` engines.
+- Updated to support proto v0.17 release.
+
 ## 0.2.1
 
 #### 🚀 Updates

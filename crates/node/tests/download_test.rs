@@ -3,6 +3,12 @@ use starbase_sandbox::create_empty_sandbox;
 
 generate_download_install_tests!("node-test", "18.0.0");
 
+mod canary {
+    use super::*;
+
+    generate_download_install_tests!("node-test", "canary");
+}
+
 #[test]
 fn supports_linux_arm64() {
     let sandbox = create_empty_sandbox();
@@ -24,9 +30,10 @@ fn supports_linux_arm64() {
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-arm64".into()),
             checksum_name: None,
-            checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
+            checksum_url: Some("https://nodejs.org/download/release/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-linux-arm64.tar.xz".into()),
-            download_url: "https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-arm64.tar.xz".into()
+            download_url:
+                "https://nodejs.org/download/release/v20.0.0/node-v20.0.0-linux-arm64.tar.xz".into()
         }
     );
 }
@@ -52,9 +59,11 @@ fn supports_linux_arm() {
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-armv7l".into()),
             checksum_name: None,
-            checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
+            checksum_url: Some("https://nodejs.org/download/release/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-linux-armv7l.tar.xz".into()),
-            download_url: "https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-armv7l.tar.xz".into()
+            download_url:
+                "https://nodejs.org/download/release/v20.0.0/node-v20.0.0-linux-armv7l.tar.xz"
+                    .into()
         }
     );
 }
@@ -80,9 +89,10 @@ fn supports_linux_x64() {
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-x64".into()),
             checksum_name: None,
-            checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
+            checksum_url: Some("https://nodejs.org/download/release/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-linux-x64.tar.xz".into()),
-            download_url: "https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-x64.tar.xz".into()
+            download_url:
+                "https://nodejs.org/download/release/v20.0.0/node-v20.0.0-linux-x64.tar.xz".into()
         }
     );
 }
@@ -108,9 +118,10 @@ fn supports_linux_s390x() {
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-s390x".into()),
             checksum_name: None,
-            checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
+            checksum_url: Some("https://nodejs.org/download/release/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-linux-s390x.tar.xz".into()),
-            download_url: "https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-s390x.tar.xz".into()
+            download_url:
+                "https://nodejs.org/download/release/v20.0.0/node-v20.0.0-linux-s390x.tar.xz".into()
         }
     );
 }
@@ -136,10 +147,11 @@ fn supports_linux_ppc64() {
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-ppc64le".into()),
             checksum_name: None,
-            checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
+            checksum_url: Some("https://nodejs.org/download/release/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-linux-ppc64le.tar.xz".into()),
-            download_url: "https://nodejs.org/dist/v20.0.0/node-v20.0.0-linux-ppc64le.tar.xz"
-                .into()
+            download_url:
+                "https://nodejs.org/download/release/v20.0.0/node-v20.0.0-linux-ppc64le.tar.xz"
+                    .into()
         }
     );
 }
@@ -165,9 +177,11 @@ fn supports_macos_arm64() {
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-darwin-arm64".into()),
             checksum_name: None,
-            checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
+            checksum_url: Some("https://nodejs.org/download/release/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-darwin-arm64.tar.xz".into()),
-            download_url: "https://nodejs.org/dist/v20.0.0/node-v20.0.0-darwin-arm64.tar.xz".into()
+            download_url:
+                "https://nodejs.org/download/release/v20.0.0/node-v20.0.0-darwin-arm64.tar.xz"
+                    .into()
         }
     );
 }
@@ -193,9 +207,10 @@ fn supports_macos_x64() {
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-darwin-x64".into()),
             checksum_name: None,
-            checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
+            checksum_url: Some("https://nodejs.org/download/release/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-darwin-x64.tar.xz".into()),
-            download_url: "https://nodejs.org/dist/v20.0.0/node-v20.0.0-darwin-x64.tar.xz".into()
+            download_url:
+                "https://nodejs.org/download/release/v20.0.0/node-v20.0.0-darwin-x64.tar.xz".into()
         }
     );
 }
@@ -221,9 +236,10 @@ fn supports_windows_arm64() {
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-win-arm64".into()),
             checksum_name: None,
-            checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
+            checksum_url: Some("https://nodejs.org/download/release/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-win-arm64.zip".into()),
-            download_url: "https://nodejs.org/dist/v20.0.0/node-v20.0.0-win-arm64.zip".into()
+            download_url: "https://nodejs.org/download/release/v20.0.0/node-v20.0.0-win-arm64.zip"
+                .into()
         }
     );
 }
@@ -249,9 +265,10 @@ fn supports_windows_x64() {
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-win-x64".into()),
             checksum_name: None,
-            checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
+            checksum_url: Some("https://nodejs.org/download/release/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-win-x64.zip".into()),
-            download_url: "https://nodejs.org/dist/v20.0.0/node-v20.0.0-win-x64.zip".into()
+            download_url: "https://nodejs.org/download/release/v20.0.0/node-v20.0.0-win-x64.zip"
+                .into()
         }
     );
 }
@@ -277,9 +294,10 @@ fn supports_windows_x86() {
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-win-x86".into()),
             checksum_name: None,
-            checksum_url: Some("https://nodejs.org/dist/v20.0.0/SHASUMS256.txt".into()),
+            checksum_url: Some("https://nodejs.org/download/release/v20.0.0/SHASUMS256.txt".into()),
             download_name: Some("node-v20.0.0-win-x86.zip".into()),
-            download_url: "https://nodejs.org/dist/v20.0.0/node-v20.0.0-win-x86.zip".into()
+            download_url: "https://nodejs.org/download/release/v20.0.0/node-v20.0.0-win-x86.zip"
+                .into()
         }
     );
 }

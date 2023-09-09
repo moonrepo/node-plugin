@@ -1,5 +1,5 @@
 use extism_pdk::*;
-use node_common::{commands, NodeDistLTS, NodeDistVersion};
+use node_common::{commands, NodeDistLTS, NodeDistVersion, PackageJson};
 use proto_pdk::*;
 use std::collections::HashMap;
 
@@ -59,13 +59,24 @@ pub fn download_prebuilt(
         ],
     )?;
 
-    let version = input.context.version;
     let arch = map_arch(env.os, env.arch)?;
+    let mut version = input.context.version;
+    let is_latest_or_canary = version == "latest" || version == "canary";
+    let mut host = "https://nodejs.org/download/release".to_owned();
+
+    // When canary, extract the latest version from the index
+    if version == "canary" {
+        let response: Vec<NodeDistVersion> =
+            fetch_url_with_cache("https://nodejs.org/download/nightly/index.json")?;
+
+        host = "https://nodejs.org/download/nightly".into();
+        version = response[0].version.strip_prefix('v').unwrap().to_owned();
+    }
 
     let prefix = match env.os {
         HostOS::Linux => format!("node-v{version}-linux-{arch}"),
         HostOS::MacOS => {
-            let parsed_version = if version == "latest" {
+            let parsed_version = if is_latest_or_canary {
                 Version::new(20, 0, 0) // Doesn't matter
             } else {
                 Version::parse(&version)?
@@ -91,9 +102,9 @@ pub fn download_prebuilt(
 
     Ok(Json(DownloadPrebuiltOutput {
         archive_prefix: Some(prefix),
-        download_url: format!("https://nodejs.org/dist/v{version}/{filename}"),
+        download_url: format!("{host}/v{version}/{filename}"),
         download_name: Some(filename),
-        checksum_url: Some(format!("https://nodejs.org/dist/v{version}/SHASUMS256.txt")),
+        checksum_url: Some(format!("{host}/v{version}/SHASUMS256.txt")),
         ..DownloadPrebuiltOutput::default()
     }))
 }
@@ -118,7 +129,7 @@ pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOu
 pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
     let response: Vec<NodeDistVersion> =
-        fetch_url_with_cache("https://nodejs.org/dist/index.json")?;
+        fetch_url_with_cache("https://nodejs.org/download/release/index.json")?;
 
     for (index, item) in response.iter().enumerate() {
         let version = Version::parse(&item.version[1..])?;
@@ -192,8 +203,33 @@ pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShim
 #[plugin_fn]
 pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
     Ok(Json(DetectVersionOutput {
-        files: vec![".nvmrc".into(), ".node-version".into()],
+        files: vec![
+            ".nvmrc".into(),
+            ".node-version".into(),
+            "package.json".into(),
+        ],
     }))
+}
+
+#[plugin_fn]
+pub fn parse_version_file(
+    Json(input): Json<ParseVersionFileInput>,
+) -> FnResult<Json<ParseVersionFileOutput>> {
+    let mut version = None;
+
+    if input.file == "package.json" {
+        if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
+            if let Some(engines) = package_json.engines {
+                if let Some(constraint) = engines.get(BIN) {
+                    version = Some(constraint.to_owned());
+                }
+            }
+        }
+    } else {
+        version = Some(input.content);
+    }
+
+    Ok(Json(ParseVersionFileOutput { version }))
 }
 
 #[plugin_fn]

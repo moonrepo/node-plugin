@@ -1,5 +1,5 @@
 use proto_pdk::InstallHook;
-use proto_pdk_test_utils::{core::AliasOrVersion, create_plugin, ToolManifest, Version};
+use proto_pdk_test_utils::{core::VersionSpec, create_plugin, ToolManifest, UnresolvedVersionSpec};
 use serial_test::serial;
 use starbase_sandbox::create_empty_sandbox;
 use std::collections::HashSet;
@@ -40,11 +40,11 @@ mod node_hooks {
 
         assert_eq!(
             manifest.default_version,
-            Some(AliasOrVersion::parse("bundled").unwrap())
+            Some(UnresolvedVersionSpec::parse("bundled").unwrap())
         );
         assert_eq!(
             manifest.installed_versions,
-            HashSet::from_iter([Version::parse("8.6.0").unwrap()])
+            HashSet::from_iter([VersionSpec::parse("8.6.0").unwrap()])
         );
     }
 
@@ -68,7 +68,7 @@ mod node_hooks {
 
         assert_eq!(
             manifest.default_version,
-            Some(AliasOrVersion::parse("8.6.0").unwrap())
+            Some(UnresolvedVersionSpec::parse("8.6.0").unwrap())
         );
     }
 
