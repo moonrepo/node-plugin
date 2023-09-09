@@ -256,15 +256,18 @@ pub fn resolve_version(
 
                 // Otherwise call the current `node` binary and infer from that
                 if !found_version {
-                    let node_version = exec_command!("node", ["--version"]);
-                    let node_version = node_version.stdout.trim();
+                    let result = exec_command!("node", ["--version"]);
 
-                    for node_release in &response {
-                        // Both start with v
-                        if node_release.version == node_version {
-                            output.version = node_release.npm.clone();
-                            found_version = true;
-                            break;
+                    if result.exit_code == 0 {
+                        let node_version = result.stdout.trim();
+
+                        for node_release in &response {
+                            // Both start with v
+                            if node_release.version == node_version {
+                                output.version = node_release.npm.clone();
+                                found_version = true;
+                                break;
+                            }
                         }
                     }
                 }
