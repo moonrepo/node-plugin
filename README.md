@@ -4,6 +4,7 @@ Node.js, npm, pnpm, and yarn WASM plugins for [proto](https://github.com/moonrep
 
 ```shell
 proto install node
+proto install npm
 ```
 
 ## Post-install hook
