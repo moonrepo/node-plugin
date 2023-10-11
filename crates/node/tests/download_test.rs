@@ -25,7 +25,8 @@ fn supports_linux_arm64() {
             context: ToolContext {
                 version: "20.0.0".into(),
                 ..Default::default()
-            }
+            },
+            ..Default::default()
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-arm64".into()),
@@ -54,7 +55,8 @@ fn supports_linux_arm() {
             context: ToolContext {
                 version: "20.0.0".into(),
                 ..Default::default()
-            }
+            },
+            ..Default::default()
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-armv7l".into()),
@@ -84,7 +86,8 @@ fn supports_linux_x64() {
             context: ToolContext {
                 version: "20.0.0".into(),
                 ..Default::default()
-            }
+            },
+            ..Default::default()
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-x64".into()),
@@ -113,7 +116,8 @@ fn supports_linux_s390x() {
             context: ToolContext {
                 version: "20.0.0".into(),
                 ..Default::default()
-            }
+            },
+            ..Default::default()
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-s390x".into()),
@@ -142,7 +146,8 @@ fn supports_linux_ppc64() {
             context: ToolContext {
                 version: "20.0.0".into(),
                 ..Default::default()
-            }
+            },
+            ..Default::default()
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-linux-ppc64le".into()),
@@ -172,7 +177,8 @@ fn supports_macos_arm64() {
             context: ToolContext {
                 version: "20.0.0".into(),
                 ..Default::default()
-            }
+            },
+            ..Default::default()
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-darwin-arm64".into()),
@@ -202,7 +208,8 @@ fn supports_macos_x64() {
             context: ToolContext {
                 version: "20.0.0".into(),
                 ..Default::default()
-            }
+            },
+            ..Default::default()
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-darwin-x64".into()),
@@ -231,7 +238,8 @@ fn supports_windows_arm64() {
             context: ToolContext {
                 version: "20.0.0".into(),
                 ..Default::default()
-            }
+            },
+            ..Default::default()
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-win-arm64".into()),
@@ -260,7 +268,8 @@ fn supports_windows_x64() {
             context: ToolContext {
                 version: "20.0.0".into(),
                 ..Default::default()
-            }
+            },
+            ..Default::default()
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-win-x64".into()),
@@ -289,7 +298,8 @@ fn supports_windows_x86() {
             context: ToolContext {
                 version: "20.0.0".into(),
                 ..Default::default()
-            }
+            },
+            ..Default::default()
         }),
         DownloadPrebuiltOutput {
             archive_prefix: Some("node-v20.0.0-win-x86".into()),

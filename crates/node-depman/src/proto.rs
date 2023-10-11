@@ -374,7 +374,16 @@ pub fn parse_version_file(
                 let name = parts.next().unwrap_or_default();
 
                 if name == manager_name {
-                    version = Some(parts.next().unwrap_or("latest").to_owned());
+                    if let Some(value) = parts.next() {
+                        // Remove corepack build metadata hash
+                        if let Some(index) = value.find('+') {
+                            version = Some(value[0..index].to_owned());
+                        } else {
+                            version = Some(value.to_owned());
+                        }
+                    } else {
+                        version = Some("latest".into());
+                    }
                 }
             }
 
