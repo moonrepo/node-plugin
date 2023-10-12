@@ -41,6 +41,22 @@ mod npm {
     }
 
     #[test]
+    fn parses_package_manager_with_hash() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("npm-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "packageManager": "npm@1.2.3+sha256.c362077587b1e782e5aef3dcf85826399ae552ad66b760e2585c4ac11102243f" }"#.into(),
+                file: "package.json".into(),
+            }),
+            ParseVersionFileOutput {
+                version: Some("1.2.3".into()),
+            }
+        );
+    }
+
+    #[test]
     fn parses_package_manager_latest() {
         let sandbox = create_empty_sandbox();
         let plugin = create_plugin("npm-test", sandbox.path());
@@ -151,8 +167,8 @@ mod yarn {
     generate_resolve_versions_tests!("yarn-test", {
         "1" => "1.22.19",
         "2" => "2.4.3",
-        "3" => "3.6.3",
-        "berry" => "3.6.3",
+        "3" => "3.6.4",
+        "berry" => "3.6.4",
     });
 
     #[test]

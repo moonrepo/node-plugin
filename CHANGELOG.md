@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2
+
+#### 🐞 Fixes
+
+- Now strips the corepack hash from `packageManager` when parsing versions.
+
 ## 0.3.1
 
 #### ⚙️ Internal

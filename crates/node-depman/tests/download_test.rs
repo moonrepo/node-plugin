@@ -22,7 +22,8 @@ mod npm {
                 context: ToolContext {
                     version: "9.0.0".into(),
                     ..Default::default()
-                }
+                },
+                ..Default::default()
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("package".into()),
@@ -80,7 +81,8 @@ mod pnpm {
                 context: ToolContext {
                     version: "8.0.0".into(),
                     ..Default::default()
-                }
+                },
+                ..Default::default()
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("package".into()),
@@ -138,7 +140,8 @@ mod yarn {
                 context: ToolContext {
                     version: "1.22.0".into(),
                     ..Default::default()
-                }
+                },
+                ..Default::default()
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("yarn-v1.22.0".into()),
@@ -196,7 +199,8 @@ mod yarn_berry {
                 context: ToolContext {
                     version: "3.6.1".into(),
                     ..Default::default()
-                }
+                },
+                ..Default::default()
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("package".into()),
