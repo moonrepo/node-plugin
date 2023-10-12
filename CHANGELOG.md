@@ -6,10 +6,6 @@
 
 - Now strips the corepack hash from `packageManager` when parsing versions.
 
-#### ⚙️ Internal
-
-- Updated dependencies.
-
 ## 0.3.1
 
 #### ⚙️ Internal
