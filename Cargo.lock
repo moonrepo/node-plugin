@@ -48,6 +48,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "allocator-api2"
+version = "0.2.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0942ffc6dcaadf03badf6e6a2d0228460359d5e34b57ccdc720b7382dfbd5ec5"
+
+[[package]]
 name = "ambient-authority"
 version = "0.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -232,13 +238,14 @@ checksum = "89b2fd2a0dcf38d7971e2194b6b6eebab45ae01067456a7fd93d5547a61b70be"
 
 [[package]]
 name = "cached"
-version = "0.45.1"
+version = "0.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "90eb5776f28a149524d1d8623035760b4454ec881e8cf3838fa8d7e1b11254b3"
+checksum = "8cead8ece0da6b744b2ad8ef9c58a4cdc7ef2921e60a6ddfb9eaaa86839b5fc5"
 dependencies = [
+ "ahash",
  "cached_proc_macro",
  "cached_proc_macro_types",
- "hashbrown 0.13.2",
+ "hashbrown 0.14.0",
  "instant",
  "once_cell",
  "thiserror",
@@ -1295,6 +1302,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2c6201b9ff9fd90a5a3bac2e56a830d0caa509576f0e503818ee82c181b3437a"
 dependencies = [
  "ahash",
+ "allocator-api2",
 ]
 
 [[package]]
@@ -1836,7 +1844,7 @@ dependencies = [
 
 [[package]]
 name = "node_depman_plugin"
-version = "0.3.2"
+version = "0.4.0"
 dependencies = [
  "extism-pdk",
  "node_common",
@@ -1850,7 +1858,7 @@ dependencies = [
 
 [[package]]
 name = "node_plugin"
-version = "0.3.2"
+version = "0.4.0"
 dependencies = [
  "extism-pdk",
  "node_common",
@@ -2089,9 +2097,9 @@ dependencies = [
 
 [[package]]
 name = "proto_core"
-version = "0.18.6"
+version = "0.19.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fe929fdf894df177f0812c3567a39ecaedf6d1d3d723c4bcd79ca3943158579e"
+checksum = "01d869626fe7c126fee3ad194ff6e275c69097c7329cf9cb5b233df99dc7206d"
 dependencies = [
  "cached",
  "extism",
@@ -2120,9 +2128,9 @@ dependencies = [
 
 [[package]]
 name = "proto_pdk"
-version = "0.7.3"
+version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2bbfbaa6ce5358bdaa3f825f55efb7eb11813c690cf6d524149018404934f248"
+checksum = "e6d5ba391593dece958913ae3a0cac7e110e8e555fc1762a72f95eca75b2d8ff"
 dependencies = [
  "anyhow",
  "extism-pdk",
@@ -2134,23 +2142,24 @@ dependencies = [
 
 [[package]]
 name = "proto_pdk_api"
-version = "0.7.2"
+version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a35152b2019ada980d05aee93c0dd1224b91013c6db0c61854a10bdd060afdcd"
+checksum = "8d69998a2bdf573616730119828c7d6775a2a098b97fe9ed2973c25f3b2aa8ff"
 dependencies = [
  "anyhow",
  "semver",
  "serde",
  "serde_json",
+ "system_env",
  "thiserror",
  "warpgate_api",
 ]
 
 [[package]]
 name = "proto_pdk_test_utils"
-version = "0.7.1"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0dceda3da62d584df46b584ea5d2b48f73b9b3e54eea1994b691ea2735708e35"
+checksum = "c86b48e26f9e8ef568444aa4a25f1250cc9aeeb931e6295374ba7d21afe13708"
 dependencies = [
  "extism",
  "proto_core",
@@ -2161,13 +2170,14 @@ dependencies = [
 
 [[package]]
 name = "proto_wasm_plugin"
-version = "0.6.7"
+version = "0.6.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7fdb73a4e0527cf8846435fb5bc568f71a59916a43fbaff35bf056c7302d0720"
+checksum = "0ebaad7908984fc92cc4391ac5a85617b26d14cab9bca94133cb93838ea09c12"
 dependencies = [
  "extism",
  "proto_pdk_api",
  "serde_json",
+ "starbase_utils",
  "tracing",
 ]
 
@@ -2580,9 +2590,9 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.188"
+version = "1.0.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf9e0fcba69a370eed61bcf2b728575f726b50b55cba78064753d708ddc7549e"
+checksum = "8e422a44e74ad4001bdc8eede9a4570ab52f71190e9c076d14369f38b9200537"
 dependencies = [
  "serde_derive",
 ]
@@ -2599,9 +2609,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.188"
+version = "1.0.189"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4eca7ac642d82aa35b60049a6eccb4be6be75e599bd2e9adb5f875a737654af2"
+checksum = "1e48d1f918009ce3145511378cf68d613e3b3d9137d67272562080d68a2b32d5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2937,6 +2947,17 @@ dependencies = [
  "rustix 0.38.11",
  "windows-sys 0.48.0",
  "winx 0.36.2",
+]
+
+[[package]]
+name = "system_env"
+version = "0.0.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "96f6684a5639ae55e0454ad7dd9e09a1a488c9d1648fba2f4b4b1af3c93256d8"
+dependencies = [
+ "serde",
+ "serde_json",
+ "thiserror",
 ]
 
 [[package]]
