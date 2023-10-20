@@ -10,6 +10,7 @@ use std::path::PathBuf;
 #[host_fn]
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
+    fn get_env_var(key: &str) -> String;
     fn host_log(input: Json<HostLogInput>);
 }
 
@@ -69,7 +70,6 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
     Ok(Json(ToolMetadataOutput {
         name: manager.to_string(),
         type_of: PluginType::DependencyManager,
-        env_vars: vec!["PROTO_NODE_VERSION".into(), "PROTO_INSTALL_GLOBAL".into()],
         default_version: if manager == PackageManager::Npm {
             Some("bundled".into())
         } else {
@@ -243,10 +243,10 @@ pub fn resolve_version(
                 let mut found_version = false;
 
                 // Infer from proto's environment variable
-                if let Some(node_version) = input.context.env_vars.get("PROTO_NODE_VERSION") {
+                if let Some(node_version) = host_env!("PROTO_NODE_VERSION") {
                     for node_release in &response {
                         // Theirs starts with v, ours does not
-                        if &node_release.version[1..] == node_version {
+                        if node_release.version[1..] == node_version {
                             output.version = node_release.npm.clone();
                             found_version = true;
                             break;
@@ -430,7 +430,7 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
     let user_config = get_proto_user_config()?;
 
     if args.len() < 3
-        || input.context.env_vars.get("PROTO_INSTALL_GLOBAL").is_some()
+        || host_env!("PROTO_INSTALL_GLOBAL").is_some()
         || !user_config.node_intercept_globals
     {
         return Ok(());
