@@ -120,7 +120,7 @@ pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOu
             format!("bin/{}", BIN).into()
         }),
         fallback_last_globals_dir: true,
-        globals_lookup_dirs: vec!["$PROTO_ROOT/tools/node/globals/bin".into()],
+        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
         ..LocateBinsOutput::default()
     }))
 }

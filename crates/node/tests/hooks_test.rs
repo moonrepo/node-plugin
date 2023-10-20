@@ -7,12 +7,12 @@ use std::env;
 use std::path::PathBuf;
 
 fn set_vars(path: PathBuf) {
-    env::set_var("PROTO_ROOT", path.to_string_lossy().to_string());
+    env::set_var("PROTO_HOME", path.to_string_lossy().to_string());
     env::set_var("PROTO_NODE_VERSION", "18.0.0");
 }
 
 fn reset_vars() {
-    env::remove_var("PROTO_ROOT");
+    env::remove_var("PROTO_HOME");
     env::remove_var("PROTO_NODE_VERSION");
 }
 
