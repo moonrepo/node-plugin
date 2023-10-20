@@ -1,7 +1,7 @@
 use proto_pdk::{RunHook, ToolContext, UserConfigSettings};
 use proto_pdk_test_utils::create_plugin;
 use starbase_sandbox::create_empty_sandbox;
-use std::collections::HashMap;
+use std::env;
 
 mod npm_hooks {
     use super::*;
@@ -19,13 +19,14 @@ mod npm_hooks {
         let sandbox = create_empty_sandbox();
         let plugin = create_plugin("npm-test", sandbox.path());
 
+        env::set_var("PROTO_INSTALL_GLOBAL", "1");
+
         plugin.pre_run(RunHook {
             passthrough_args: vec!["install".into(), "-g".into(), "typescript".into()],
-            context: ToolContext {
-                env_vars: HashMap::from_iter([("PROTO_INSTALL_GLOBAL".into(), "1".into())]),
-                ..ToolContext::default()
-            },
+            context: ToolContext::default(),
         });
+
+        env::remove_var("PROTO_INSTALL_GLOBAL");
     }
 
     #[test]

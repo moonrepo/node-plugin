@@ -27,10 +27,8 @@ mod npm {
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("package".into()),
-                checksum_name: None,
-                checksum_url: None,
-                download_name: None,
-                download_url: "https://registry.npmjs.org/npm/-/npm-9.0.0.tgz".into()
+                download_url: "https://registry.npmjs.org/npm/-/npm-9.0.0.tgz".into(),
+                ..Default::default()
             }
         );
     }
@@ -86,10 +84,8 @@ mod pnpm {
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("package".into()),
-                checksum_name: None,
-                checksum_url: None,
-                download_name: None,
-                download_url: "https://registry.npmjs.org/pnpm/-/pnpm-8.0.0.tgz".into()
+                download_url: "https://registry.npmjs.org/pnpm/-/pnpm-8.0.0.tgz".into(),
+                ..Default::default()
             }
         );
     }
@@ -145,10 +141,8 @@ mod yarn {
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("yarn-v1.22.0".into()),
-                checksum_name: None,
-                checksum_url: None,
-                download_name: None,
-                download_url: "https://registry.npmjs.org/yarn/-/yarn-1.22.0.tgz".into()
+                download_url: "https://registry.npmjs.org/yarn/-/yarn-1.22.0.tgz".into(),
+                ..Default::default()
             }
         );
     }
@@ -204,11 +198,9 @@ mod yarn_berry {
             }),
             DownloadPrebuiltOutput {
                 archive_prefix: Some("package".into()),
-                checksum_name: None,
-                checksum_url: None,
-                download_name: None,
                 download_url: "https://registry.npmjs.org/@yarnpkg/cli-dist/-/cli-dist-3.6.1.tgz"
-                    .into()
+                    .into(),
+                ..Default::default()
             }
         );
     }

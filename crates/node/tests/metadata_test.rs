@@ -10,7 +10,6 @@ fn registers_metadata() {
         plugin.register_tool(ToolMetadataInput::default()),
         ToolMetadataOutput {
             name: "Node.js".into(),
-            env_vars: vec!["NODE_OPTIONS".into(), "NODE_PATH".into()],
             plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
             ..ToolMetadataOutput::default()
         }
