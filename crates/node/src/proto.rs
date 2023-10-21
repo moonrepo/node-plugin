@@ -66,7 +66,7 @@ pub fn download_prebuilt(
     // When canary, extract the latest version from the index
     if version == "canary" {
         let response: Vec<NodeDistVersion> =
-            fetch_url_with_cache("https://nodejs.org/download/nightly/index.json")?;
+            fetch_url("https://nodejs.org/download/nightly/index.json")?;
 
         host = "https://nodejs.org/download/nightly".into();
         version = response[0].version.strip_prefix('v').unwrap().to_owned();
@@ -128,7 +128,7 @@ pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOu
 pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
     let response: Vec<NodeDistVersion> =
-        fetch_url_with_cache("https://nodejs.org/download/release/index.json")?;
+        fetch_url("https://nodejs.org/download/release/index.json")?;
 
     for (index, item) in response.iter().enumerate() {
         let version = Version::parse(&item.version[1..])?;

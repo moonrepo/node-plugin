@@ -205,18 +205,16 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
         Ok(())
     };
 
-    map_output(fetch_url_with_cache(format!(
+    map_output(fetch_url(format!(
         "https://registry.npmjs.org/{}/",
         package_name
     ))?)?;
 
     // Yarn is managed by 2 different packages, so we need to request versions from both of them!
     if manager.is_yarn_berry(&input.initial) {
-        map_output(fetch_url_with_cache("https://registry.npmjs.org/yarn/")?)?;
+        map_output(fetch_url("https://registry.npmjs.org/yarn/")?)?;
     } else if manager.is_yarn_classic(&input.initial) {
-        map_output(fetch_url_with_cache(
-            "https://registry.npmjs.org/@yarnpkg/cli-dist/",
-        )?)?;
+        map_output(fetch_url("https://registry.npmjs.org/@yarnpkg/cli-dist/")?)?;
     }
 
     output
@@ -239,7 +237,7 @@ pub fn resolve_version(
             // version that comes bundled with the current Node.js version.
             if input.initial == "bundled" {
                 let response: Vec<NodeDistVersion> =
-                    fetch_url_with_cache("https://nodejs.org/download/release/index.json")?;
+                    fetch_url("https://nodejs.org/download/release/index.json")?;
                 let mut found_version = false;
 
                 // Infer from proto's environment variable

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1
+
+#### 🐞 Fixes
+
+- Potentially fixed a WASM memory issue.
+
 ## 0.4.0
 
 #### 🚀 Updates
