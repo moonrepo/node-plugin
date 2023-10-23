@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.2
+
+#### 🚀 Updates
+
+- Support Yarn v4.
+
+#### 🐞 Fixes
+
+- Temporarily fixed an issue where calling `node` as a child process may fail.
+
 ## 0.4.1
 
 #### 🐞 Fixes

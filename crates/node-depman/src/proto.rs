@@ -254,17 +254,17 @@ pub fn resolve_version(
 
                 // Otherwise call the current `node` binary and infer from that
                 if !found_version {
-                    let result = exec_command!("node", ["--version"]);
+                    if let Ok(result) = exec_command!(raw, "node", ["--version"]) {
+                        if result.0.exit_code == 0 {
+                            let node_version = result.0.stdout.trim();
 
-                    if result.exit_code == 0 {
-                        let node_version = result.stdout.trim();
-
-                        for node_release in &response {
-                            // Both start with v
-                            if node_release.version == node_version {
-                                output.version = node_release.npm.clone();
-                                found_version = true;
-                                break;
+                            for node_release in &response {
+                                // Both start with v
+                                if node_release.version == node_version {
+                                    output.version = node_release.npm.clone();
+                                    found_version = true;
+                                    break;
+                                }
                             }
                         }
                     }
@@ -281,9 +281,8 @@ pub fn resolve_version(
         }
 
         PackageManager::Yarn => {
-            // Latest currently resolves to a v4-rc version...
             if input.initial == "berry" || input.initial == "latest" {
-                output.candidate = Some("~3".into());
+                output.candidate = Some("~4".into());
             } else if input.initial == "legacy" || input.initial == "classic" {
                 output.candidate = Some("~1".into());
             }
