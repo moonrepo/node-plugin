@@ -245,7 +245,7 @@ dependencies = [
  "ahash",
  "cached_proc_macro",
  "cached_proc_macro_types",
- "hashbrown 0.14.0",
+ "hashbrown 0.14.2",
  "instant",
  "once_cell",
  "thiserror",
@@ -725,7 +725,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "978747c1d849a7d2ee5e8adc0159961c48fb7e5db2f06af6723b80123bb53856"
 dependencies = [
  "cfg-if",
- "hashbrown 0.14.0",
+ "hashbrown 0.14.2",
  "lock_api",
  "once_cell",
  "parking_lot_core",
@@ -1297,9 +1297,9 @@ dependencies = [
 
 [[package]]
 name = "hashbrown"
-version = "0.14.0"
+version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c6201b9ff9fd90a5a3bac2e56a830d0caa509576f0e503818ee82c181b3437a"
+checksum = "f93e7192158dbcda357bdec5fb5788eebf8bbac027f3f33e719d29135ae84156"
 dependencies = [
  "ahash",
  "allocator-api2",
@@ -1490,7 +1490,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d5477fe2230a79769d8dc68e0eabf5437907c0457a5614a9e8dddb67f65eb65d"
 dependencies = [
  "equivalent",
- "hashbrown 0.14.0",
+ "hashbrown 0.14.2",
 ]
 
 [[package]]
@@ -1940,12 +1940,12 @@ checksum = "dd8b5dd2ae5ed71462c540258bedcb51965123ad7e7ccf4b9a8cafaa4a63576d"
 
 [[package]]
 name = "once_map"
-version = "0.4.8"
+version = "0.4.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "169e72192bc84493725bfca5d47da4ee2abc8acf155586d8127eb17f022497f4"
+checksum = "0dc08fbf8d1bb5119046009c6a3f3153333f1080b68778e0e1be37c747b97cf5"
 dependencies = [
  "ahash",
- "hashbrown 0.14.0",
+ "hashbrown 0.14.2",
  "parking_lot",
  "stable_deref_trait",
 ]
@@ -2103,9 +2103,9 @@ dependencies = [
 
 [[package]]
 name = "proto_core"
-version = "0.20.0"
+version = "0.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac3ec2a09d2419150c2a05f4a02a0db67daa01bdf7579b9109772d0861327b8b"
+checksum = "b019eaa6e4fd13b09f98e6d562841680be19815ebbfdd3707a8e82c7ae9a91a2"
 dependencies = [
  "cached",
  "extism",
@@ -2135,9 +2135,9 @@ dependencies = [
 
 [[package]]
 name = "proto_pdk"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "63fb8a833e33fcb2ea79324ef89b5e631b8aadc3c7c11bdf4bc7ca25ec716858"
+checksum = "4dd47a2deb95a886ed08088ae99dae63d1f19052442aeeb073964327c31ba3eb"
 dependencies = [
  "anyhow",
  "extism-pdk",
@@ -2147,9 +2147,9 @@ dependencies = [
 
 [[package]]
 name = "proto_pdk_api"
-version = "0.8.0"
+version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8c05662171d4984a9fd57e7fc33a071e0822bb2e993b7a1d06ce9dc5847698b6"
+checksum = "e72330b212b8499e5ead791296cf9971b807fb6706c11705308b3e2fef012ea4"
 dependencies = [
  "anyhow",
  "semver",
@@ -2162,9 +2162,9 @@ dependencies = [
 
 [[package]]
 name = "proto_pdk_test_utils"
-version = "0.8.2"
+version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9cc75a9923b630193bef09734147636f45e5857ff33d8511fbb1e3ccffe5e1ad"
+checksum = "4064a4145a30ab8603dfd8af7a7a2e5abf8fd7503c10cb48c554467b6df3be34"
 dependencies = [
  "extism",
  "proto_core",
@@ -2175,9 +2175,9 @@ dependencies = [
 
 [[package]]
 name = "proto_wasm_plugin"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2f4ff89bb77f5f4ce5dd9536200c73140acaef632d33cacb59e12a2a8c8f3d7d"
+checksum = "e52de55d49c055e505771beeaa59e75ac81746ec991e4c326d9387b04d6d353c"
 dependencies = [
  "extism",
  "proto_pdk_api",
@@ -2956,9 +2956,9 @@ dependencies = [
 
 [[package]]
 name = "system_env"
-version = "0.0.3"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1a5b2f67543171658346f56eba6978221227dd79541a6b1fdb2b2f9116ed640"
+checksum = "11d80839b892a1c48cd74f975914cd2070df5b0afed5574e2af7e8866290939b"
 dependencies = [
  "serde",
  "serde_json",
@@ -3432,9 +3432,9 @@ dependencies = [
 
 [[package]]
 name = "warpgate"
-version = "0.5.10"
+version = "0.5.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52eeb90e962c1310c0bfe7d066f4a7fe032f01dd94f6ee3d983167c90596a7f7"
+checksum = "0cd4bc62c93b7cb92f95e632684e288913cd3575cae308a2b72178d26ba2e060"
 dependencies = [
  "extism",
  "miette",
