@@ -181,14 +181,16 @@ struct RegistryResponse {
 }
 
 // https://github.com/moonrepo/proto/issues/257
-fn parse_registry_response(text: String, is_yarn: bool) -> Result<RegistryResponse, Error> {
+fn parse_registry_response(res: HttpResponse, is_yarn: bool) -> Result<RegistryResponse, Error> {
     if !is_yarn {
-        return Ok(json::from_str(&text)?);
+        return res.json();
     }
 
-    let pattern = regex::Regex::new("[\u{0000}-\u{001F}]+").unwrap();
+    let pattern = regex::bytes::Regex::new("[\u{0000}-\u{001F}]+").unwrap();
+    let body = res.body();
+    // let text = String::from_bytes(res.body())?;
 
-    Ok(json::from_str(&pattern.replace_all(&text, ""))?)
+    Ok(json::from_slice(&pattern.replace_all(&body, b""))?)
 }
 
 #[plugin_fn]
@@ -197,8 +199,8 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
     let manager = PackageManager::detect();
     let package_name = manager.get_package_name(&input.initial);
 
-    let mut map_output = |res_text: String, is_yarn: bool| -> Result<(), Error> {
-        let res = parse_registry_response(res_text, is_yarn)?;
+    let mut map_output = |res: HttpResponse, is_yarn: bool| -> Result<(), Error> {
+        let res = parse_registry_response(res, is_yarn)?;
 
         for item in res.versions.values() {
             output.versions.push(Version::parse(&item.version)?);
@@ -220,14 +222,23 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
 
     // Yarn is managed by 2 different packages, so we need to request versions from both of them!
     if manager == PackageManager::Yarn {
-        map_output(fetch_url_text("https://registry.npmjs.org/yarn/")?, true)?;
         map_output(
-            fetch_url_text("https://registry.npmjs.org/@yarnpkg/cli-dist/")?,
+            fetch(HttpRequest::new("https://registry.npmjs.org/yarn/"), None)?,
+            true,
+        )?;
+        map_output(
+            fetch(
+                HttpRequest::new("https://registry.npmjs.org/@yarnpkg/cli-dist/"),
+                None,
+            )?,
             true,
         )?;
     } else {
         map_output(
-            fetch_url_text(format!("https://registry.npmjs.org/{}/", package_name))?,
+            fetch(
+                HttpRequest::new(format!("https://registry.npmjs.org/{}/", package_name)),
+                None,
+            )?,
             false,
         )?;
     }
