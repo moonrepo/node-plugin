@@ -180,13 +180,22 @@ struct RegistryResponse {
     versions: HashMap<String, RegistryVersion>,
 }
 
+// https://github.com/moonrepo/proto/issues/257
+fn parse_registry_response(text: String) -> Result<RegistryResponse, Error> {
+    let pattern = regex::Regex::new("[\u{0000}-\u{001F}]+").unwrap();
+
+    Ok(json::from_str(&pattern.replace_all(&text, ""))?)
+}
+
 #[plugin_fn]
 pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
     let manager = PackageManager::detect();
     let package_name = manager.get_package_name(&input.initial);
 
-    let mut map_output = |res: RegistryResponse| -> Result<(), Error> {
+    let mut map_output = |res_text: String| -> Result<(), Error> {
+        let res = parse_registry_response(res_text)?;
+
         for item in res.versions.values() {
             output.versions.push(Version::parse(&item.version)?);
         }
@@ -205,16 +214,17 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
         Ok(())
     };
 
-    map_output(fetch_url(format!(
-        "https://registry.npmjs.org/{}/",
-        package_name
-    ))?)?;
-
     // Yarn is managed by 2 different packages, so we need to request versions from both of them!
-    if manager.is_yarn_berry(&input.initial) {
-        map_output(fetch_url("https://registry.npmjs.org/yarn/")?)?;
-    } else if manager.is_yarn_classic(&input.initial) {
-        map_output(fetch_url("https://registry.npmjs.org/@yarnpkg/cli-dist/")?)?;
+    if manager == PackageManager::Yarn {
+        map_output(fetch_url_text("https://registry.npmjs.org/yarn/")?)?;
+        map_output(fetch_url_text(
+            "https://registry.npmjs.org/@yarnpkg/cli-dist/",
+        )?)?;
+    } else {
+        map_output(fetch_url_text(format!(
+            "https://registry.npmjs.org/{}/",
+            package_name
+        ))?)?;
     }
 
     output

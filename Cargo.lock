@@ -1856,6 +1856,7 @@ dependencies = [
  "node_common",
  "proto_pdk",
  "proto_pdk_test_utils",
+ "regex",
  "serde",
  "serde_json",
  "starbase_sandbox",
