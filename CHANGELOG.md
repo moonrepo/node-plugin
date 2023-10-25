@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.3
+
+#### 🐞 Fixes
+
+- Temporarily fixed an issue where Yarn would fail to parse the npm registry response and error with "control character (\u0000-\u001F) found while parsing a string".
+
 ## 0.4.2
 
 #### 🚀 Updates
