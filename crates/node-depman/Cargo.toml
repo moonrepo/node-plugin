@@ -1,6 +1,6 @@
 [package]
 name = "node_depman_plugin"
-version = "0.4.2"
+version = "0.4.3"
 edition = "2021"
 license = "MIT"
 publish = false
@@ -12,6 +12,7 @@ crate-type = ['cdylib']
 node_common = { path = "../common" }
 extism-pdk = { workspace = true }
 proto_pdk = { workspace = true }
+regex = { workspace = true }
 serde = { workspace = true }
 
 [dev-dependencies]

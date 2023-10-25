@@ -1850,12 +1850,13 @@ dependencies = [
 
 [[package]]
 name = "node_depman_plugin"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "extism-pdk",
  "node_common",
  "proto_pdk",
  "proto_pdk_test_utils",
+ "regex",
  "serde",
  "serde_json",
  "starbase_sandbox",
@@ -1864,7 +1865,7 @@ dependencies = [
 
 [[package]]
 name = "node_plugin"
-version = "0.4.2"
+version = "0.4.3"
 dependencies = [
  "extism-pdk",
  "node_common",
