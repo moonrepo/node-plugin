@@ -6,7 +6,7 @@ generate_resolve_versions_tests!("node-test", {
     "10.1" => "10.1.0",
     "lts-gallium" => "16.20.2",
     "lts/fermium" => "14.21.3",
-    "stable" => "18.18.2",
+    "stable" => "20.9.0",
     "node" => "21.0.0",
 });
 
@@ -45,7 +45,7 @@ fn sets_lts_aliases() {
         aliases,
         [
             "argon", "boron", "carbon", "dubnium", "erbium", "fermium", "gallium", "hydrogen",
-            "latest", "stable"
+            "iron", "latest", "stable"
         ]
     );
 }
