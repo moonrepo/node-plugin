@@ -4,14 +4,15 @@ members = ["crates/*"]
 
 [workspace.dependencies]
 extism-pdk = "0.3.4"
-proto_pdk = { version = "0.8.1" }            # , path = "../../proto/crates/pdk" }
-proto_pdk_api = { version = "0.8.1" }        # , path = "../../proto/crates/pdk-api" }
-proto_pdk_test_utils = { version = "0.8.4" } # , path = "../../proto/crates/pdk-test-utils" }
-regex = "1.10.2"
-serde = "1.0.189"
-serde_json = "1.0.107"
-starbase_sandbox = "0.1.11"
+proto_pdk = { version = "0.9.0" }                        # , path = "../../proto/crates/pdk" }
+proto_pdk_api = { version = "0.9.0" }                    # , path = "../../proto/crates/pdk-api" }
+proto_pdk_test_utils = { version = "0.9.1" }             # , path = "../../proto/crates/pdk-test-utils" }
+regex = { version = "1.10.2", default-features = false }
+serde = "1.0.190"
+serde_json = "1.0.108"
+starbase_sandbox = "0.1.12"
 tokio = "1.33.0"
+version_spec = "0.1.3"
 
 [profile.release]
 codegen-units = 1

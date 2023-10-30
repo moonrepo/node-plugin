@@ -34,22 +34,30 @@ impl PackageManager {
         }
     }
 
-    pub fn get_package_name(&self, version: &str) -> String {
-        if self.is_yarn_berry(version) {
+    pub fn get_package_name(&self, version: impl AsRef<VersionSpec>) -> String {
+        if self.is_yarn_berry(version.as_ref()) {
             "@yarnpkg/cli-dist".into()
         } else {
             self.to_string()
         }
     }
 
-    pub fn is_yarn_classic(&self, version: &str) -> bool {
-        self == &PackageManager::Yarn
-            && (version.starts_with('1') || version == "legacy" || version == "classic")
+    pub fn is_yarn_classic(&self, version: &VersionSpec) -> bool {
+        matches!(self, PackageManager::Yarn)
+            && match version {
+                VersionSpec::Canary => false,
+                VersionSpec::Alias(alias) => alias == "legacy" || alias == "classic",
+                VersionSpec::Version(ver) => ver.major == 1,
+            }
     }
 
-    pub fn is_yarn_berry(&self, version: &str) -> bool {
-        self == &PackageManager::Yarn
-            && (!version.starts_with('1') || version == "berry" || version == "latest")
+    pub fn is_yarn_berry(&self, version: &VersionSpec) -> bool {
+        matches!(self, PackageManager::Yarn)
+            && match version {
+                VersionSpec::Canary => false,
+                VersionSpec::Alias(alias) => alias == "berry" || alias == "latest",
+                VersionSpec::Version(ver) => ver.major > 1,
+            }
     }
 }
 
@@ -71,7 +79,7 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
         name: manager.to_string(),
         type_of: PluginType::DependencyManager,
         default_version: if manager == PackageManager::Npm {
-            Some("bundled".into())
+            Some(UnresolvedVersionSpec::Alias("bundled".into()))
         } else {
             None
         },
@@ -87,7 +95,7 @@ pub fn download_prebuilt(
     let version = &input.context.version;
     let manager = PackageManager::detect();
 
-    if version == "canary" {
+    if version.is_canary() {
         return err!(PluginError::UnsupportedCanary {
             tool: manager.to_string()
         }
@@ -197,7 +205,7 @@ fn parse_registry_response(res: HttpResponse, is_yarn: bool) -> Result<RegistryR
 pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
     let manager = PackageManager::detect();
-    let package_name = manager.get_package_name(&input.initial);
+    let package_name = manager.get_package_name(input.initial.to_resolved_spec());
 
     let mut map_output = |res: HttpResponse, is_yarn: bool| -> Result<(), Error> {
         let res = parse_registry_response(res, is_yarn)?;
@@ -261,7 +269,7 @@ pub fn resolve_version(
         PackageManager::Npm => {
             // When the alias "bundled" is provided, we should install the npm
             // version that comes bundled with the current Node.js version.
-            if input.initial == "bundled" {
+            if input.initial.is_alias("bundled") {
                 let response: Vec<NodeDistVersion> =
                     fetch_url("https://nodejs.org/download/release/index.json")?;
                 let mut found_version = false;
@@ -271,7 +279,8 @@ pub fn resolve_version(
                     for node_release in &response {
                         // Theirs starts with v, ours does not
                         if node_release.version[1..] == node_version {
-                            output.version = node_release.npm.clone();
+                            output.version =
+                                Some(VersionSpec::parse(node_release.npm.as_ref().unwrap())?);
                             found_version = true;
                             break;
                         }
@@ -287,7 +296,9 @@ pub fn resolve_version(
                             for node_release in &response {
                                 // Both start with v
                                 if node_release.version == node_version {
-                                    output.version = node_release.npm.clone();
+                                    output.version = Some(VersionSpec::parse(
+                                        node_release.npm.as_ref().unwrap(),
+                                    )?);
                                     found_version = true;
                                     break;
                                 }
@@ -301,16 +312,18 @@ pub fn resolve_version(
                         "Could not find a bundled npm version for Node.js, falling back to latest"
                     );
 
-                    output.candidate = Some("latest".into());
+                    output.candidate = Some(UnresolvedVersionSpec::Alias("latest".into()));
                 }
             }
         }
 
         PackageManager::Yarn => {
-            if input.initial == "berry" || input.initial == "latest" {
-                output.candidate = Some("~4".into());
-            } else if input.initial == "legacy" || input.initial == "classic" {
-                output.candidate = Some("~1".into());
+            if let UnresolvedVersionSpec::Alias(alias) = input.initial {
+                if alias == "berry" || alias == "latest" {
+                    output.candidate = Some(UnresolvedVersionSpec::parse("~4")?);
+                } else if alias == "legacy" || alias == "classic" {
+                    output.candidate = Some(UnresolvedVersionSpec::parse("~1")?);
+                }
             }
         }
 
@@ -397,23 +410,25 @@ pub fn parse_version_file(
                 let name = parts.next().unwrap_or_default();
 
                 if name == manager_name {
-                    if let Some(value) = parts.next() {
+                    let value = if let Some(value) = parts.next() {
                         // Remove corepack build metadata hash
                         if let Some(index) = value.find('+') {
-                            version = Some(value[0..index].to_owned());
+                            &value[0..index]
                         } else {
-                            version = Some(value.to_owned());
+                            value
                         }
                     } else {
-                        version = Some("latest".into());
-                    }
+                        "latest"
+                    };
+
+                    version = Some(UnresolvedVersionSpec::parse(value)?);
                 }
             }
 
             if version.is_none() {
                 if let Some(engines) = package_json.engines {
                     if let Some(constraint) = engines.get(&manager_name) {
-                        version = Some(constraint.to_owned());
+                        version = Some(UnresolvedVersionSpec::parse(constraint)?);
                     }
                 }
             }
