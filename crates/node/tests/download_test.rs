@@ -3,6 +3,8 @@ use starbase_sandbox::create_empty_sandbox;
 
 generate_download_install_tests!("node-test", "18.0.0");
 
+// Doesn't provide macos x64 builds
+#[cfg(not(target_os = "macos"))]
 mod canary {
     use super::*;
 
