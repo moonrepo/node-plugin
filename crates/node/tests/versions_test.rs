@@ -61,7 +61,7 @@ fn parses_engines() {
             file: "package.json".into(),
         }),
         ParseVersionFileOutput {
-            version: Some(">=16".into()),
+            version: Some(UnresolvedVersionSpec::parse(">=16").unwrap()),
         }
     );
 }

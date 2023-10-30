@@ -35,7 +35,7 @@ mod npm {
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {
-                version: Some("1.2.3".into()),
+                version: Some(UnresolvedVersionSpec::parse("1.2.3").unwrap()),
             }
         );
     }
@@ -51,7 +51,7 @@ mod npm {
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {
-                version: Some("1.2.3".into()),
+                version: Some(UnresolvedVersionSpec::parse("1.2.3").unwrap()),
             }
         );
     }
@@ -67,7 +67,7 @@ mod npm {
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {
-                version: Some("latest".into()),
+                version: Some(UnresolvedVersionSpec::parse("latest").unwrap()),
             }
         );
     }
@@ -83,7 +83,7 @@ mod npm {
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {
-                version: Some("1.2.3".into()),
+                version: Some(UnresolvedVersionSpec::parse("1.2.3").unwrap()),
             }
         );
     }
@@ -123,7 +123,7 @@ mod pnpm {
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {
-                version: Some("1.2.3".into()),
+                version: Some(UnresolvedVersionSpec::parse("1.2.3").unwrap()),
             }
         );
     }
@@ -139,7 +139,7 @@ mod pnpm {
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {
-                version: Some("latest".into()),
+                version: Some(UnresolvedVersionSpec::parse("latest").unwrap()),
             }
         );
     }
@@ -155,7 +155,7 @@ mod pnpm {
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {
-                version: Some("1.2.3".into()),
+                version: Some(UnresolvedVersionSpec::parse("1.2.3").unwrap()),
             }
         );
     }
@@ -196,7 +196,7 @@ mod yarn {
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {
-                version: Some("1.2.3".into()),
+                version: Some(UnresolvedVersionSpec::parse("1.2.3").unwrap()),
             }
         );
     }
@@ -212,7 +212,7 @@ mod yarn {
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {
-                version: Some("latest".into()),
+                version: Some(UnresolvedVersionSpec::parse("latest").unwrap()),
             }
         );
     }
@@ -228,7 +228,7 @@ mod yarn {
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {
-                version: Some("1.2.3".into()),
+                version: Some(UnresolvedVersionSpec::parse("1.2.3").unwrap()),
             }
         );
     }
