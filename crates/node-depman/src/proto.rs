@@ -333,7 +333,10 @@ pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShim
                 "npm".into(),
                 ShimConfig::local_with_parent("bin/npm-cli.js", "node"),
             );
-
+            local_shims.insert(
+                "npx".into(),
+                ShimConfig::local_with_parent("bin/npx-cli.js", "node"),
+            );
             // node-gyp
             global_shims.insert(
                 "node-gyp".into(),

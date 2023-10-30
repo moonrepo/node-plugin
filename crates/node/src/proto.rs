@@ -181,20 +181,7 @@ pub fn resolve_version(
 
 #[plugin_fn]
 pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
-    let env = get_proto_environment()?;
-    let mut global_shims = HashMap::new();
-
-    global_shims.insert(
-        "npx".into(),
-        ShimConfig::global_with_alt_bin(if env.os == HostOS::Windows {
-            "npx.cmd"
-        } else {
-            "bin/npx"
-        }),
-    );
-
     Ok(Json(CreateShimsOutput {
-        global_shims,
         ..CreateShimsOutput::default()
     }))
 }
