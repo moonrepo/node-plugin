@@ -34,7 +34,7 @@ impl PackageManager {
         }
     }
 
-    pub fn get_package_name(&self, version: impl AsRef<VersionSpec>) -> String {
+    pub fn get_package_name(&self, version: impl AsRef<UnresolvedVersionSpec>) -> String {
         if self.is_yarn_berry(version.as_ref()) {
             "@yarnpkg/cli-dist".into()
         } else {
@@ -42,21 +42,23 @@ impl PackageManager {
         }
     }
 
-    pub fn is_yarn_classic(&self, version: &VersionSpec) -> bool {
+    pub fn is_yarn_classic(&self, version: impl AsRef<UnresolvedVersionSpec>) -> bool {
         matches!(self, PackageManager::Yarn)
-            && match version {
-                VersionSpec::Canary => false,
-                VersionSpec::Alias(alias) => alias == "legacy" || alias == "classic",
-                VersionSpec::Version(ver) => ver.major == 1,
+            && match version.as_ref() {
+                UnresolvedVersionSpec::Alias(alias) => alias == "legacy" || alias == "classic",
+                UnresolvedVersionSpec::Version(ver) => ver.major == 1,
+                UnresolvedVersionSpec::Req(req) => req.comparators.iter().any(|c| c.major == 1),
+                _ => false,
             }
     }
 
-    pub fn is_yarn_berry(&self, version: &VersionSpec) -> bool {
+    pub fn is_yarn_berry(&self, version: impl AsRef<UnresolvedVersionSpec>) -> bool {
         matches!(self, PackageManager::Yarn)
-            && match version {
-                VersionSpec::Canary => false,
-                VersionSpec::Alias(alias) => alias == "berry" || alias == "latest",
-                VersionSpec::Version(ver) => ver.major > 1,
+            && match version.as_ref() {
+                UnresolvedVersionSpec::Alias(alias) => alias == "berry" || alias == "latest",
+                UnresolvedVersionSpec::Version(ver) => ver.major > 1,
+                UnresolvedVersionSpec::Req(req) => req.comparators.iter().any(|c| c.major > 1),
+                _ => false,
             }
     }
 }
@@ -102,10 +104,10 @@ pub fn download_prebuilt(
         .into());
     }
 
-    let package_name = manager.get_package_name(version);
+    let package_name = manager.get_package_name(version.to_unresolved_spec());
 
     // Derive values based on package manager
-    let archive_prefix = if manager.is_yarn_classic(version) {
+    let archive_prefix = if manager.is_yarn_classic(version.to_unresolved_spec()) {
         format!("yarn-v{version}")
     } else {
         "package".into()
@@ -205,7 +207,7 @@ fn parse_registry_response(res: HttpResponse, is_yarn: bool) -> Result<RegistryR
 pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
     let manager = PackageManager::detect();
-    let package_name = manager.get_package_name(input.initial.to_resolved_spec());
+    let package_name = manager.get_package_name(&input.initial);
 
     let mut map_output = |res: HttpResponse, is_yarn: bool| -> Result<(), Error> {
         let res = parse_registry_response(res, is_yarn)?;
