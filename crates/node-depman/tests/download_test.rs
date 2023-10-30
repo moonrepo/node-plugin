@@ -20,7 +20,7 @@ mod npm {
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
                 context: ToolContext {
-                    version: "9.0.0".into(),
+                    version: VersionSpec::parse("9.0.0").unwrap(),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -48,7 +48,7 @@ mod npm {
             plugin
                 .locate_bins(LocateBinsInput {
                     context: ToolContext {
-                        version: "9.0.0".into(),
+                        version: VersionSpec::parse("9.0.0").unwrap(),
                         ..Default::default()
                     },
                 })
@@ -77,7 +77,7 @@ mod pnpm {
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
                 context: ToolContext {
-                    version: "8.0.0".into(),
+                    version: VersionSpec::parse("8.0.0").unwrap(),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -105,7 +105,7 @@ mod pnpm {
             plugin
                 .locate_bins(LocateBinsInput {
                     context: ToolContext {
-                        version: "8.0.0".into(),
+                        version: VersionSpec::parse("8.0.0").unwrap(),
                         ..Default::default()
                     },
                 })
@@ -134,7 +134,7 @@ mod yarn {
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
                 context: ToolContext {
-                    version: "1.22.0".into(),
+                    version: VersionSpec::parse("1.22.0").unwrap(),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -162,7 +162,7 @@ mod yarn {
             plugin
                 .locate_bins(LocateBinsInput {
                     context: ToolContext {
-                        version: "1.22.0".into(),
+                        version: VersionSpec::parse("1.22.0").unwrap(),
                         ..Default::default()
                     },
                 })
@@ -191,7 +191,7 @@ mod yarn_berry {
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
                 context: ToolContext {
-                    version: "3.6.1".into(),
+                    version: VersionSpec::parse("3.6.1").unwrap(),
                     ..Default::default()
                 },
                 ..Default::default()
@@ -220,7 +220,7 @@ mod yarn_berry {
             plugin
                 .locate_bins(LocateBinsInput {
                     context: ToolContext {
-                        version: "3.6.1".into(),
+                        version: VersionSpec::parse("3.6.1").unwrap(),
                         ..Default::default()
                     },
                 })
@@ -254,7 +254,7 @@ fn locates_bin_from_package_json_bin() {
         plugin
             .locate_bins(LocateBinsInput {
                 context: ToolContext {
-                    version: "20.0.0".into(),
+                    version: VersionSpec::parse("20.0.0").unwrap(),
                     ..Default::default()
                 },
             })
@@ -284,7 +284,7 @@ fn locates_bin_from_package_json_bin() {
         plugin
             .locate_bins(LocateBinsInput {
                 context: ToolContext {
-                    version: "9.0.0".into(),
+                    version: VersionSpec::parse("9.0.0").unwrap(),
                     ..Default::default()
                 },
             })
@@ -316,7 +316,7 @@ fn locates_bin_from_package_json_main() {
         plugin
             .locate_bins(LocateBinsInput {
                 context: ToolContext {
-                    version: "8.0.0".into(),
+                    version: VersionSpec::parse("8.0.0").unwrap(),
                     ..Default::default()
                 },
             })

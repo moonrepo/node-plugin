@@ -18,7 +18,7 @@ mod npm {
             ToolMetadataOutput {
                 name: "npm".into(),
                 type_of: PluginType::DependencyManager,
-                default_version: Some("bundled".into()),
+                default_version: Some(UnresolvedVersionSpec::Alias("bundled".into())),
                 plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
                 ..ToolMetadataOutput::default()
             }

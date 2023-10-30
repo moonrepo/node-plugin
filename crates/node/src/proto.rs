@@ -60,25 +60,23 @@ pub fn download_prebuilt(
 
     let arch = map_arch(env.os, env.arch)?;
     let mut version = input.context.version;
-    let is_latest_or_canary = version == "latest" || version == "canary";
     let mut host = "https://nodejs.org/download/release".to_owned();
 
     // When canary, extract the latest version from the index
-    if version == "canary" {
+    if version.is_canary() {
         let response: Vec<NodeDistVersion> =
             fetch_url("https://nodejs.org/download/nightly/index.json")?;
 
         host = "https://nodejs.org/download/nightly".into();
-        version = response[0].version.strip_prefix('v').unwrap().to_owned();
+        version = VersionSpec::parse(&response[0].version)?;
     }
 
     let prefix = match env.os {
         HostOS::Linux => format!("node-v{version}-linux-{arch}"),
         HostOS::MacOS => {
-            let parsed_version = if is_latest_or_canary {
-                Version::new(20, 0, 0) // Doesn't matter
-            } else {
-                Version::parse(&version)?
+            let parsed_version = match &version {
+                VersionSpec::Version(v) => v.to_owned(),
+                _ => Version::new(20, 0, 0), // Doesn't matter
             };
 
             // Arm64 support was added after v16, but M1/M2 machines can
@@ -168,12 +166,18 @@ pub fn resolve_version(
 ) -> FnResult<Json<ResolveVersionOutput>> {
     let mut output = ResolveVersionOutput::default();
 
-    if input.initial == "node" {
-        output.candidate = Some("latest".into());
-    } else if input.initial == "lts-*" || input.initial == "lts/*" {
-        output.candidate = Some("stable".into());
-    } else if input.initial.starts_with("lts-") || input.initial.starts_with("lts/") {
-        output.candidate = Some(input.initial[4..].to_owned());
+    if let UnresolvedVersionSpec::Alias(alias) = input.initial {
+        let candidate = if alias == "node" {
+            "latest"
+        } else if alias == "lts-*" || alias == "lts/*" {
+            "stable"
+        } else if alias.starts_with("lts-") || alias.starts_with("lts/") {
+            &alias[4..]
+        } else {
+            return Ok(Json(output));
+        };
+
+        output.candidate = Some(UnresolvedVersionSpec::Alias(candidate.to_owned()));
     }
 
     Ok(Json(output))
@@ -220,12 +224,12 @@ pub fn parse_version_file(
         if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
             if let Some(engines) = package_json.engines {
                 if let Some(constraint) = engines.get(BIN) {
-                    version = Some(constraint.to_owned());
+                    version = Some(UnresolvedVersionSpec::parse(constraint)?);
                 }
             }
         }
     } else {
-        version = Some(input.content);
+        version = Some(UnresolvedVersionSpec::parse(input.content)?);
     }
 
     Ok(Json(ParseVersionFileOutput { version }))

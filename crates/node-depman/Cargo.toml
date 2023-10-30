@@ -14,6 +14,7 @@ extism-pdk = { workspace = true }
 proto_pdk = { workspace = true }
 regex = { workspace = true }
 serde = { workspace = true }
+version_spec = { workspace = true }
 
 [dev-dependencies]
 proto_pdk_test_utils = { workspace = true }
