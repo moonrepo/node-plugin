@@ -1861,7 +1861,6 @@ dependencies = [
  "serde_json",
  "starbase_sandbox",
  "tokio",
- "version_spec",
 ]
 
 [[package]]
