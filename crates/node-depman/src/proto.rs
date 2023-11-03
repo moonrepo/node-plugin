@@ -1,9 +1,9 @@
+use crate::npm_registry::parse_registry_response;
+use crate::package_manager::PackageManager;
 use extism_pdk::*;
 use node_common::{commands, BinField, NodeDistVersion, PackageJson};
 use proto_pdk::*;
-use serde::Deserialize;
 use std::collections::HashMap;
-use std::fmt;
 use std::fs;
 use std::path::PathBuf;
 
@@ -12,65 +12,6 @@ extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
     fn get_env_var(key: &str) -> String;
     fn host_log(input: Json<HostLogInput>);
-}
-
-#[derive(PartialEq)]
-enum PackageManager {
-    Npm,
-    Pnpm,
-    Yarn,
-}
-
-impl PackageManager {
-    pub fn detect() -> PackageManager {
-        let id = get_tool_id();
-
-        if id.to_lowercase().contains("yarn") {
-            PackageManager::Yarn
-        } else if id.to_lowercase().contains("pnpm") {
-            PackageManager::Pnpm
-        } else {
-            PackageManager::Npm
-        }
-    }
-
-    pub fn get_package_name(&self, version: impl AsRef<UnresolvedVersionSpec>) -> String {
-        if self.is_yarn_berry(version.as_ref()) {
-            "@yarnpkg/cli-dist".into()
-        } else {
-            self.to_string()
-        }
-    }
-
-    pub fn is_yarn_classic(&self, version: impl AsRef<UnresolvedVersionSpec>) -> bool {
-        matches!(self, PackageManager::Yarn)
-            && match version.as_ref() {
-                UnresolvedVersionSpec::Alias(alias) => alias == "legacy" || alias == "classic",
-                UnresolvedVersionSpec::Version(ver) => ver.major == 1,
-                UnresolvedVersionSpec::Req(req) => req.comparators.iter().any(|c| c.major == 1),
-                _ => false,
-            }
-    }
-
-    pub fn is_yarn_berry(&self, version: impl AsRef<UnresolvedVersionSpec>) -> bool {
-        matches!(self, PackageManager::Yarn)
-            && match version.as_ref() {
-                UnresolvedVersionSpec::Alias(alias) => alias == "berry" || alias == "latest",
-                UnresolvedVersionSpec::Version(ver) => ver.major > 1,
-                UnresolvedVersionSpec::Req(req) => req.comparators.iter().any(|c| c.major > 1),
-                _ => false,
-            }
-    }
-}
-
-impl fmt::Display for PackageManager {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            PackageManager::Npm => write!(f, "npm"),
-            PackageManager::Pnpm => write!(f, "pnpm"),
-            PackageManager::Yarn => write!(f, "yarn"),
-        }
-    }
 }
 
 #[plugin_fn]
@@ -91,116 +32,53 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
 }
 
 #[plugin_fn]
-pub fn download_prebuilt(
-    Json(input): Json<DownloadPrebuiltInput>,
-) -> FnResult<Json<DownloadPrebuiltOutput>> {
-    let version = &input.context.version;
-    let manager = PackageManager::detect();
-
-    if version.is_canary() {
-        return err!(PluginError::UnsupportedCanary {
-            tool: manager.to_string()
-        }
-        .into());
-    }
-
-    let package_name = manager.get_package_name(version.to_unresolved_spec());
-
-    // Derive values based on package manager
-    let archive_prefix = if manager.is_yarn_classic(version.to_unresolved_spec()) {
-        format!("yarn-v{version}")
-    } else {
-        "package".into()
-    };
-
-    let package_without_scope = if package_name.contains('/') {
-        package_name.split('/').nth(1).unwrap()
-    } else {
-        &package_name
-    };
-
-    Ok(Json(DownloadPrebuiltOutput {
-        archive_prefix: Some(archive_prefix),
-        download_url: format!(
-            "https://registry.npmjs.org/{package_name}/-/{package_without_scope}-{version}.tgz",
-        ),
-        ..DownloadPrebuiltOutput::default()
+pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
+    Ok(Json(DetectVersionOutput {
+        files: vec!["package.json".into()],
     }))
 }
 
 #[plugin_fn]
-pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
-    let mut bin_path = None;
-    let package_path = input.context.tool_dir.join("package.json");
-    let manager = PackageManager::detect();
-    let manager_name = manager.to_string();
+pub fn parse_version_file(
+    Json(input): Json<ParseVersionFileInput>,
+) -> FnResult<Json<ParseVersionFileOutput>> {
+    let mut version = None;
 
-    // Extract the binary from the `package.json`
-    if package_path.exists() {
-        if let Ok(package_json) = json::from_slice::<PackageJson>(&fs::read(package_path)?) {
-            if let Some(bin_field) = package_json.bin {
-                match bin_field {
-                    BinField::String(bin) => {
-                        bin_path = Some(bin);
-                    }
-                    BinField::Object(map) => {
-                        if let Some(bin) = map.get(&manager_name) {
-                            bin_path = Some(bin.to_owned());
+    if input.file == "package.json" {
+        if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
+            let manager_name = PackageManager::detect().to_string();
+
+            if let Some(pm) = package_json.package_manager {
+                let mut parts = pm.split('@');
+                let name = parts.next().unwrap_or_default();
+
+                if name == manager_name {
+                    let value = if let Some(value) = parts.next() {
+                        // Remove corepack build metadata hash
+                        if let Some(index) = value.find('+') {
+                            &value[0..index]
+                        } else {
+                            value
                         }
-                    }
-                };
+                    } else {
+                        "latest"
+                    };
+
+                    version = Some(UnresolvedVersionSpec::parse(value)?);
+                }
             }
 
-            if bin_path.is_none() {
-                if let Some(main_field) = package_json.main {
-                    bin_path = Some(main_field);
+            if version.is_none() {
+                if let Some(engines) = package_json.engines {
+                    if let Some(constraint) = engines.get(&manager_name) {
+                        version = Some(UnresolvedVersionSpec::parse(constraint)?);
+                    }
                 }
             }
         }
     }
 
-    if bin_path.is_none() {
-        bin_path = Some(format!(
-            "bin/{}",
-            if manager == PackageManager::Pnpm {
-                "pnpm.cjs".to_owned()
-            } else {
-                manager_name
-            }
-        ));
-    }
-
-    Ok(Json(LocateBinsOutput {
-        bin_path: bin_path.map(PathBuf::from),
-        fallback_last_globals_dir: true,
-        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
-        ..LocateBinsOutput::default()
-    }))
-}
-
-#[derive(Deserialize)]
-struct RegistryVersion {
-    version: String, // No v prefix
-}
-
-#[derive(Deserialize)]
-struct RegistryResponse {
-    #[serde(rename = "dist-tags")]
-    dist_tags: HashMap<String, String>,
-    versions: HashMap<String, RegistryVersion>,
-}
-
-// https://github.com/moonrepo/proto/issues/257
-fn parse_registry_response(res: HttpResponse, is_yarn: bool) -> Result<RegistryResponse, Error> {
-    if !is_yarn {
-        return res.json();
-    }
-
-    let pattern = regex::bytes::Regex::new("[\u{0000}-\u{001F}]+").unwrap();
-    let body = res.body();
-    // let text = String::from_bytes(res.body())?;
-
-    Ok(json::from_slice(&pattern.replace_all(&body, b""))?)
+    Ok(Json(ParseVersionFileOutput { version }))
 }
 
 #[plugin_fn]
@@ -280,7 +158,7 @@ pub fn resolve_version(
                 if let Some(node_version) = host_env!("PROTO_NODE_VERSION") {
                     for node_release in &response {
                         // Theirs starts with v, ours does not
-                        if node_release.version[1..] == node_version {
+                        if node_release.version[1..] == node_version && node_release.npm.is_some() {
                             output.version =
                                 Some(VersionSpec::parse(node_release.npm.as_ref().unwrap())?);
                             found_version = true;
@@ -291,20 +169,16 @@ pub fn resolve_version(
 
                 // Otherwise call the current `node` binary and infer from that
                 if !found_version {
-                    if let Ok(result) = exec_command!(raw, "node", ["--version"]) {
-                        if result.0.exit_code == 0 {
-                            let node_version = result.0.stdout.trim();
+                    let result = exec_command!("node", ["--version"]);
+                    let node_version = result.stdout.trim();
 
-                            for node_release in &response {
-                                // Both start with v
-                                if node_release.version == node_version {
-                                    output.version = Some(VersionSpec::parse(
-                                        node_release.npm.as_ref().unwrap(),
-                                    )?);
-                                    found_version = true;
-                                    break;
-                                }
-                            }
+                    for node_release in &response {
+                        // Both start with v
+                        if node_release.version == node_version && node_release.npm.is_some() {
+                            output.version =
+                                Some(VersionSpec::parse(node_release.npm.as_ref().unwrap())?);
+                            found_version = true;
+                            break;
                         }
                     }
                 }
@@ -336,108 +210,41 @@ pub fn resolve_version(
 }
 
 #[plugin_fn]
-pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
-    let env = get_proto_environment()?;
+pub fn download_prebuilt(
+    Json(input): Json<DownloadPrebuiltInput>,
+) -> FnResult<Json<DownloadPrebuiltOutput>> {
+    let version = &input.context.version;
     let manager = PackageManager::detect();
-    let mut global_shims = HashMap::<String, ShimConfig>::new();
-    let mut local_shims = HashMap::<String, ShimConfig>::new();
 
-    match manager {
-        PackageManager::Npm => {
-            local_shims.insert(
-                "npm".into(),
-                ShimConfig::local_with_parent("bin/npm-cli.js", "node"),
-            );
-
-            // node-gyp
-            global_shims.insert(
-                "node-gyp".into(),
-                ShimConfig::global_with_alt_bin(if env.os == HostOS::Windows {
-                    "bin/node-gyp-bin/node-gyp.cmd"
-                } else {
-                    "bin/node-gyp-bin/node-gyp"
-                }),
-            );
+    if version.is_canary() {
+        return err!(PluginError::UnsupportedCanary {
+            tool: manager.to_string()
         }
-        PackageManager::Pnpm => {
-            local_shims.insert(
-                "pnpm".into(),
-                ShimConfig::local_with_parent("bin/pnpm.cjs", "node"),
-            );
-
-            // pnpx
-            global_shims.insert("pnpx".into(), ShimConfig::global_with_sub_command("dlx"));
-        }
-        PackageManager::Yarn => {
-            local_shims.insert(
-                "yarn".into(),
-                ShimConfig::local_with_parent("bin/yarn.js", "node"),
-            );
-
-            // yarnpkg
-            global_shims.insert("yarnpkg".into(), ShimConfig::default());
-        }
-    };
-
-    Ok(Json(CreateShimsOutput {
-        primary: Some(ShimConfig {
-            parent_bin: Some("node".into()),
-            ..ShimConfig::default()
-        }),
-        global_shims,
-        local_shims,
-        ..CreateShimsOutput::default()
-    }))
-}
-
-#[plugin_fn]
-pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
-    Ok(Json(DetectVersionOutput {
-        files: vec!["package.json".into()],
-    }))
-}
-
-#[plugin_fn]
-pub fn parse_version_file(
-    Json(input): Json<ParseVersionFileInput>,
-) -> FnResult<Json<ParseVersionFileOutput>> {
-    let mut version = None;
-
-    if input.file == "package.json" {
-        if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
-            let manager_name = PackageManager::detect().to_string();
-
-            if let Some(pm) = package_json.package_manager {
-                let mut parts = pm.split('@');
-                let name = parts.next().unwrap_or_default();
-
-                if name == manager_name {
-                    let value = if let Some(value) = parts.next() {
-                        // Remove corepack build metadata hash
-                        if let Some(index) = value.find('+') {
-                            &value[0..index]
-                        } else {
-                            value
-                        }
-                    } else {
-                        "latest"
-                    };
-
-                    version = Some(UnresolvedVersionSpec::parse(value)?);
-                }
-            }
-
-            if version.is_none() {
-                if let Some(engines) = package_json.engines {
-                    if let Some(constraint) = engines.get(&manager_name) {
-                        version = Some(UnresolvedVersionSpec::parse(constraint)?);
-                    }
-                }
-            }
-        }
+        .into());
     }
 
-    Ok(Json(ParseVersionFileOutput { version }))
+    let package_name = manager.get_package_name(version.to_unresolved_spec());
+
+    // Derive values based on package manager
+    let archive_prefix = if manager.is_yarn_classic(version.to_unresolved_spec()) {
+        format!("yarn-v{version}")
+    } else {
+        "package".into()
+    };
+
+    let package_without_scope = if package_name.contains('/') {
+        package_name.split('/').nth(1).unwrap()
+    } else {
+        &package_name
+    };
+
+    Ok(Json(DownloadPrebuiltOutput {
+        archive_prefix: Some(archive_prefix),
+        download_url: format!(
+            "https://registry.npmjs.org/{package_name}/-/{package_without_scope}-{version}.tgz",
+        ),
+        ..DownloadPrebuiltOutput::default()
+    }))
 }
 
 #[plugin_fn]
@@ -509,4 +316,112 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
     }
 
     Ok(())
+}
+
+// DEPRECATED
+// Remove in v0.23!
+
+#[plugin_fn]
+pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+    let mut bin_path = None;
+    let package_path = input.context.tool_dir.join("package.json");
+    let manager = PackageManager::detect();
+    let manager_name = manager.to_string();
+
+    // Extract the binary from the `package.json`
+    if package_path.exists() {
+        if let Ok(package_json) = json::from_slice::<PackageJson>(&fs::read(package_path)?) {
+            if let Some(bin_field) = package_json.bin {
+                match bin_field {
+                    BinField::String(bin) => {
+                        bin_path = Some(bin);
+                    }
+                    BinField::Object(map) => {
+                        if let Some(bin) = map.get(&manager_name) {
+                            bin_path = Some(bin.to_owned());
+                        }
+                    }
+                };
+            }
+
+            if bin_path.is_none() {
+                if let Some(main_field) = package_json.main {
+                    bin_path = Some(main_field);
+                }
+            }
+        }
+    }
+
+    if bin_path.is_none() {
+        bin_path = Some(format!(
+            "bin/{}",
+            if manager == PackageManager::Pnpm {
+                "pnpm.cjs".to_owned()
+            } else {
+                manager_name
+            }
+        ));
+    }
+
+    Ok(Json(LocateBinsOutput {
+        bin_path: bin_path.map(PathBuf::from),
+        fallback_last_globals_dir: true,
+        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
+        ..LocateBinsOutput::default()
+    }))
+}
+
+#[plugin_fn]
+pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
+    let env = get_proto_environment()?;
+    let manager = PackageManager::detect();
+    let mut global_shims = HashMap::<String, ShimConfig>::new();
+    let mut local_shims = HashMap::<String, ShimConfig>::new();
+
+    match manager {
+        PackageManager::Npm => {
+            local_shims.insert(
+                "npm".into(),
+                ShimConfig::local_with_parent("bin/npm-cli.js", "node"),
+            );
+
+            // node-gyp
+            global_shims.insert(
+                "node-gyp".into(),
+                ShimConfig::global_with_alt_bin(if env.os == HostOS::Windows {
+                    "bin/node-gyp-bin/node-gyp.cmd"
+                } else {
+                    "bin/node-gyp-bin/node-gyp"
+                }),
+            );
+        }
+        PackageManager::Pnpm => {
+            local_shims.insert(
+                "pnpm".into(),
+                ShimConfig::local_with_parent("bin/pnpm.cjs", "node"),
+            );
+
+            // pnpx
+            global_shims.insert("pnpx".into(), ShimConfig::global_with_sub_command("dlx"));
+        }
+        PackageManager::Yarn => {
+            local_shims.insert(
+                "yarn".into(),
+                ShimConfig::local_with_parent("bin/yarn.js", "node"),
+            );
+
+            // yarnpkg
+            global_shims.insert("yarnpkg".into(), ShimConfig::default());
+        }
+    };
+
+    Ok(Json(CreateShimsOutput {
+        primary: Some(ShimConfig {
+            parent_bin: Some("node".into()),
+            ..ShimConfig::default()
+        }),
+        global_shims,
+        local_shims,
+        ..CreateShimsOutput::default()
+    }))
 }
