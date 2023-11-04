@@ -9,6 +9,14 @@
   - Previously we would execute the JS file with node: `node ./bin/npm-cli.js`
   - Now we execute the shell script: `./bin/npm` (unix), `./bin/npm.cmd` (windows)
 
+#### 🚀 Updates
+
+- Updated to support proto v0.22 release.
+
+#### ⚙️ Internal
+
+- Updated dependencies.
+
 ## 0.4.3
 
 #### 🐞 Fixes

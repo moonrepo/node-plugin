@@ -258,23 +258,18 @@ pub fn locate_executables(
 
     match &manager {
         PackageManager::Npm => {
-            primary = ExecutableConfig::new(env.os.map_unix_or_win("bin/npm", "bin/npm.cmd"));
+            primary = ExecutableConfig::new(env.os.get_file_name("bin/npm", "cmd"));
 
             // npx
             secondary.insert(
                 "npx".into(),
-                ExecutableConfig::new(env.os.map_unix_or_win("bin/npx", "bin/npx.cmd")),
+                ExecutableConfig::new(env.os.get_file_name("bin/npx", "cmd")),
             );
 
             // node-gyp
             secondary.insert(
                 "node-gyp".into(),
-                ExecutableConfig::new(
-                    env.os.map_unix_or_win(
-                        "bin/node-gyp-bin/node-gyp",
-                        "bin/node-gyp-bin/node-gyp.cmd",
-                    ),
-                ),
+                ExecutableConfig::new(env.os.get_file_name("bin/node-gyp-bin/node-gyp", "cmd")),
             );
         }
         PackageManager::Pnpm => {
@@ -291,7 +286,7 @@ pub fn locate_executables(
             );
         }
         PackageManager::Yarn => {
-            primary = ExecutableConfig::new(env.os.map_unix_or_win("bin/yarn", "bin/yarn.cmd"));
+            primary = ExecutableConfig::new(env.os.get_file_name("bin/yarn", "cmd"));
 
             // yarnpkg
             secondary.insert("yarnpkg".into(), ExecutableConfig::default());
