@@ -46,13 +46,15 @@ mod npm {
 
         assert_eq!(
             plugin
-                .locate_bins(LocateBinsInput {
+                .locate_executables(LocateExecutablesInput {
                     context: ToolContext {
                         version: VersionSpec::parse("9.0.0").unwrap(),
                         ..Default::default()
                     },
                 })
-                .bin_path,
+                .primary
+                .unwrap()
+                .exe_path,
             Some("bin/npm".into())
         );
     }
@@ -103,13 +105,15 @@ mod pnpm {
 
         assert_eq!(
             plugin
-                .locate_bins(LocateBinsInput {
+                .locate_executables(LocateExecutablesInput {
                     context: ToolContext {
                         version: VersionSpec::parse("8.0.0").unwrap(),
                         ..Default::default()
                     },
                 })
-                .bin_path,
+                .primary
+                .unwrap()
+                .exe_path,
             Some("bin/pnpm.cjs".into())
         );
     }
@@ -160,13 +164,15 @@ mod yarn {
 
         assert_eq!(
             plugin
-                .locate_bins(LocateBinsInput {
+                .locate_executables(LocateExecutablesInput {
                     context: ToolContext {
                         version: VersionSpec::parse("1.22.0").unwrap(),
                         ..Default::default()
                     },
                 })
-                .bin_path,
+                .primary
+                .unwrap()
+                .exe_path,
             Some("bin/yarn".into())
         );
     }
@@ -218,109 +224,16 @@ mod yarn_berry {
 
         assert_eq!(
             plugin
-                .locate_bins(LocateBinsInput {
+                .locate_executables(LocateExecutablesInput {
                     context: ToolContext {
                         version: VersionSpec::parse("3.6.1").unwrap(),
                         ..Default::default()
                     },
                 })
-                .bin_path,
+                .primary
+                .unwrap()
+                .exe_path,
             Some("bin/yarn".into())
         );
     }
-}
-
-#[test]
-fn locates_bin_from_package_json_bin() {
-    let sandbox = create_empty_sandbox();
-
-    sandbox.create_file(
-        ".proto/tools/npm-test/latest/package.json",
-        r#"{
-    "main": "./index.js",
-    "bin": "./file.js"
-}"#,
-    );
-
-    let mut plugin = create_plugin("npm-test", sandbox.path());
-
-    plugin.set_environment(HostEnvironment {
-        arch: HostArch::X64,
-        os: HostOS::Windows,
-        ..Default::default()
-    });
-
-    assert_eq!(
-        plugin
-            .locate_bins(LocateBinsInput {
-                context: ToolContext {
-                    version: VersionSpec::parse("20.0.0").unwrap(),
-                    ..Default::default()
-                },
-            })
-            .bin_path,
-        Some("./file.js".into())
-    );
-
-    plugin.set_environment(HostEnvironment {
-        arch: HostArch::Arm64,
-        os: HostOS::Linux,
-        ..Default::default()
-    });
-
-    sandbox.create_file(
-        ".proto/tools/npm-test/latest/package.json",
-        r#"{
-    "main": "./index.js",
-    "bin": {
-        "npm": "./npm.js",
-        "pnpm": "./pnpm.js",
-        "yarn": "./yarn.js"
-    }
-}"#,
-    );
-
-    assert_eq!(
-        plugin
-            .locate_bins(LocateBinsInput {
-                context: ToolContext {
-                    version: VersionSpec::parse("9.0.0").unwrap(),
-                    ..Default::default()
-                },
-            })
-            .bin_path,
-        Some("./npm.js".into())
-    );
-}
-
-#[test]
-fn locates_bin_from_package_json_main() {
-    let sandbox = create_empty_sandbox();
-
-    sandbox.create_file(
-        ".proto/tools/npm-test/latest/package.json",
-        r#"{
-    "main": "./index.js"
-}"#,
-    );
-
-    let mut plugin = create_plugin("npm-test", sandbox.path());
-
-    plugin.set_environment(HostEnvironment {
-        arch: HostArch::X64,
-        os: HostOS::MacOS,
-        ..Default::default()
-    });
-
-    assert_eq!(
-        plugin
-            .locate_bins(LocateBinsInput {
-                context: ToolContext {
-                    version: VersionSpec::parse("8.0.0").unwrap(),
-                    ..Default::default()
-                },
-            })
-            .bin_path,
-        Some("./index.js".into())
-    );
 }

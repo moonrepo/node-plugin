@@ -1,3 +1,5 @@
+#![allow(dead_code)]
+
 use proto_pdk::{get_tool_id, UnresolvedVersionSpec};
 use std::fmt;
 

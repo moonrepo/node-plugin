@@ -1,7 +1,6 @@
 use extism_pdk::*;
 use node_common::{commands, NodeDistLTS, NodeDistVersion, PackageJson};
 use proto_pdk::*;
-use std::collections::HashMap;
 
 #[host_fn]
 extern "ExtismHost" {
@@ -200,6 +199,23 @@ pub fn download_prebuilt(
 }
 
 #[plugin_fn]
+pub fn locate_executables(
+    Json(_): Json<LocateExecutablesInput>,
+) -> FnResult<Json<LocateExecutablesOutput>> {
+    let env = get_proto_environment()?;
+
+    Ok(Json(LocateExecutablesOutput {
+        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
+        primary: Some(ExecutableConfig::new(if env.os == HostOS::Windows {
+            format!("{}.exe", BIN)
+        } else {
+            format!("bin/{}", BIN)
+        })),
+        ..LocateExecutablesOutput::default()
+    }))
+}
+
+#[plugin_fn]
 pub fn install_global(
     Json(input): Json<InstallGlobalInput>,
 ) -> FnResult<Json<InstallGlobalOutput>> {
@@ -273,25 +289,5 @@ pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOu
         fallback_last_globals_dir: true,
         globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
         ..LocateBinsOutput::default()
-    }))
-}
-
-#[plugin_fn]
-pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
-    let env = get_proto_environment()?;
-    let mut global_shims = HashMap::new();
-
-    global_shims.insert(
-        "npx".into(),
-        ShimConfig::global_with_alt_bin(if env.os == HostOS::Windows {
-            "npx.cmd"
-        } else {
-            "bin/npx"
-        }),
-    );
-
-    Ok(Json(CreateShimsOutput {
-        global_shims,
-        ..CreateShimsOutput::default()
     }))
 }

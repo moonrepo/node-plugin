@@ -248,6 +248,65 @@ pub fn download_prebuilt(
 }
 
 #[plugin_fn]
+pub fn locate_executables(
+    Json(_): Json<LocateExecutablesInput>,
+) -> FnResult<Json<LocateExecutablesOutput>> {
+    let env = get_proto_environment()?;
+    let manager = PackageManager::detect();
+    let mut secondary = HashMap::default();
+    let mut primary;
+
+    match &manager {
+        PackageManager::Npm => {
+            primary = ExecutableConfig::new(env.os.map_unix_or_win("bin/npm", "bin/npm.cmd"));
+
+            // npx
+            secondary.insert(
+                "npx".into(),
+                ExecutableConfig::new(env.os.map_unix_or_win("bin/npx", "bin/npx.cmd")),
+            );
+
+            // node-gyp
+            secondary.insert(
+                "node-gyp".into(),
+                ExecutableConfig::new(
+                    env.os.map_unix_or_win(
+                        "bin/node-gyp-bin/node-gyp",
+                        "bin/node-gyp-bin/node-gyp.cmd",
+                    ),
+                ),
+            );
+        }
+        PackageManager::Pnpm => {
+            primary = ExecutableConfig::new("bin/pnpm.cjs");
+            primary.no_bin = true; // Can't execute a JS file
+
+            // pnpx
+            secondary.insert(
+                "pnpx".into(),
+                ExecutableConfig {
+                    shim_before_args: Some("dlx".into()),
+                    ..ExecutableConfig::default()
+                },
+            );
+        }
+        PackageManager::Yarn => {
+            primary = ExecutableConfig::new(env.os.map_unix_or_win("bin/yarn", "bin/yarn.cmd"));
+
+            // yarnpkg
+            secondary.insert("yarnpkg".into(), ExecutableConfig::default());
+        }
+    };
+
+    Ok(Json(LocateExecutablesOutput {
+        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
+        primary: Some(primary),
+        secondary,
+        ..LocateExecutablesOutput::default()
+    }))
+}
+
+#[plugin_fn]
 pub fn install_global(
     Json(input): Json<InstallGlobalInput>,
 ) -> FnResult<Json<InstallGlobalOutput>> {
@@ -392,6 +451,16 @@ pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShim
                     "bin/node-gyp-bin/node-gyp.cmd"
                 } else {
                     "bin/node-gyp-bin/node-gyp"
+                }),
+            );
+
+            // npx
+            global_shims.insert(
+                "npx".into(),
+                ShimConfig::global_with_alt_bin(if env.os == HostOS::Windows {
+                    "bin/npx.cmd"
+                } else {
+                    "bin/npx"
                 }),
             );
         }
