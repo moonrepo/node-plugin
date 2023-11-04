@@ -46,6 +46,18 @@ jobs:
         with:
           bins: cargo-wasi, cargo-nextest
       - uses: moonrepo/setup-toolchain@v0
+      - run: df
+        if: ${{ always() && runner.os == 'Linux' }}
+      - run: Get-PSDrive
+        if: ${{ always() && runner.os == 'Windows' }}
       - run: cargo wasi build -p node_plugin
+      - run: df
+        if: ${{ always() && runner.os == 'Linux' }}
+      - run: Get-PSDrive
+        if: ${{ always() && runner.os == 'Windows' }}
       - run: cargo wasi build -p node_depman_plugin
+      - run: df
+        if: ${{ always() && runner.os == 'Linux' }}
+      - run: Get-PSDrive
+        if: ${{ always() && runner.os == 'Windows' }}
       - run: cargo nextest run --workspace
