@@ -327,13 +327,15 @@ fn locates_unix_bin() {
 
     assert_eq!(
         plugin
-            .locate_bins(LocateBinsInput {
+            .locate_executables(LocateExecutablesInput {
                 context: ToolContext {
                     version: VersionSpec::parse("20.0.0").unwrap(),
                     ..Default::default()
                 },
             })
-            .bin_path,
+            .primary
+            .unwrap()
+            .exe_path,
         Some("bin/node".into())
     );
 }
@@ -351,13 +353,15 @@ fn locates_windows_bin() {
 
     assert_eq!(
         plugin
-            .locate_bins(LocateBinsInput {
+            .locate_executables(LocateExecutablesInput {
                 context: ToolContext {
                     version: VersionSpec::parse("20.0.0").unwrap(),
                     ..Default::default()
                 },
             })
-            .bin_path,
+            .primary
+            .unwrap()
+            .exe_path,
         Some("node.exe".into())
     );
 }

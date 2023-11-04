@@ -1,7 +1,6 @@
 use extism_pdk::*;
 use node_common::{commands, NodeDistLTS, NodeDistVersion, PackageJson};
 use proto_pdk::*;
-use std::collections::HashMap;
 
 #[host_fn]
 extern "ExtismHost" {
@@ -20,6 +19,99 @@ pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMeta
         plugin_version: Some(env!("CARGO_PKG_VERSION").into()),
         ..ToolMetadataOutput::default()
     }))
+}
+
+#[plugin_fn]
+pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
+    Ok(Json(DetectVersionOutput {
+        files: vec![
+            ".nvmrc".into(),
+            ".node-version".into(),
+            "package.json".into(),
+        ],
+    }))
+}
+
+#[plugin_fn]
+pub fn parse_version_file(
+    Json(input): Json<ParseVersionFileInput>,
+) -> FnResult<Json<ParseVersionFileOutput>> {
+    let mut version = None;
+
+    if input.file == "package.json" {
+        if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
+            if let Some(engines) = package_json.engines {
+                if let Some(constraint) = engines.get(BIN) {
+                    version = Some(UnresolvedVersionSpec::parse(constraint)?);
+                }
+            }
+        }
+    } else {
+        version = Some(UnresolvedVersionSpec::parse(input.content)?);
+    }
+
+    Ok(Json(ParseVersionFileOutput { version }))
+}
+
+#[plugin_fn]
+pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
+    let mut output = LoadVersionsOutput::default();
+    let response: Vec<NodeDistVersion> =
+        fetch_url("https://nodejs.org/download/release/index.json")?;
+
+    for (index, item) in response.iter().enumerate() {
+        let version = Version::parse(&item.version[1..])?;
+
+        // First item is always the latest
+        if index == 0 {
+            output.latest = Some(version.clone());
+        }
+
+        if let NodeDistLTS::Name(alias) = &item.lts {
+            let alias = alias.to_lowercase();
+
+            // The first encounter of an lts is the latest stable
+            if !output.aliases.contains_key("stable") {
+                output.aliases.insert("stable".into(), version.clone());
+            }
+
+            // The first encounter of an lts is the latest version for that alias
+            if !output.aliases.contains_key(&alias) {
+                output.aliases.insert(alias.clone(), version.clone());
+            }
+        }
+
+        output.versions.push(version);
+    }
+
+    output
+        .aliases
+        .insert("latest".into(), output.latest.clone().unwrap());
+
+    Ok(Json(output))
+}
+
+#[plugin_fn]
+pub fn resolve_version(
+    Json(input): Json<ResolveVersionInput>,
+) -> FnResult<Json<ResolveVersionOutput>> {
+    let mut output = ResolveVersionOutput::default();
+
+    if let UnresolvedVersionSpec::Alias(alias) = input.initial {
+        let candidate = if alias == "node" {
+            "latest"
+        } else if alias == "lts-*" || alias == "lts/*" {
+            "stable"
+        } else if alias.starts_with("lts-") || alias.starts_with("lts/") {
+            &alias[4..]
+        } else {
+            return Ok(Json(output));
+        };
+
+        output.candidate = Some(UnresolvedVersionSpec::Alias(candidate.to_owned()));
+    }
+
+    Ok(Json(output))
 }
 
 fn map_arch(os: HostOS, arch: HostArch) -> Result<String, PluginError> {
@@ -107,132 +199,20 @@ pub fn download_prebuilt(
 }
 
 #[plugin_fn]
-pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+pub fn locate_executables(
+    Json(_): Json<LocateExecutablesInput>,
+) -> FnResult<Json<LocateExecutablesOutput>> {
     let env = get_proto_environment()?;
 
-    Ok(Json(LocateBinsOutput {
-        bin_path: Some(if env.os == HostOS::Windows {
-            format!("{}.exe", BIN).into()
-        } else {
-            format!("bin/{}", BIN).into()
-        }),
-        fallback_last_globals_dir: true,
+    Ok(Json(LocateExecutablesOutput {
         globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
-        ..LocateBinsOutput::default()
-    }))
-}
-
-#[plugin_fn]
-pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
-    let mut output = LoadVersionsOutput::default();
-    let response: Vec<NodeDistVersion> =
-        fetch_url("https://nodejs.org/download/release/index.json")?;
-
-    for (index, item) in response.iter().enumerate() {
-        let version = Version::parse(&item.version[1..])?;
-
-        // First item is always the latest
-        if index == 0 {
-            output.latest = Some(version.clone());
-        }
-
-        if let NodeDistLTS::Name(alias) = &item.lts {
-            let alias = alias.to_lowercase();
-
-            // The first encounter of an lts is the latest stable
-            if !output.aliases.contains_key("stable") {
-                output.aliases.insert("stable".into(), version.clone());
-            }
-
-            // The first encounter of an lts is the latest version for that alias
-            if !output.aliases.contains_key(&alias) {
-                output.aliases.insert(alias.clone(), version.clone());
-            }
-        }
-
-        output.versions.push(version);
-    }
-
-    output
-        .aliases
-        .insert("latest".into(), output.latest.clone().unwrap());
-
-    Ok(Json(output))
-}
-
-#[plugin_fn]
-pub fn resolve_version(
-    Json(input): Json<ResolveVersionInput>,
-) -> FnResult<Json<ResolveVersionOutput>> {
-    let mut output = ResolveVersionOutput::default();
-
-    if let UnresolvedVersionSpec::Alias(alias) = input.initial {
-        let candidate = if alias == "node" {
-            "latest"
-        } else if alias == "lts-*" || alias == "lts/*" {
-            "stable"
-        } else if alias.starts_with("lts-") || alias.starts_with("lts/") {
-            &alias[4..]
+        primary: Some(ExecutableConfig::new(if env.os == HostOS::Windows {
+            format!("{}.exe", BIN)
         } else {
-            return Ok(Json(output));
-        };
-
-        output.candidate = Some(UnresolvedVersionSpec::Alias(candidate.to_owned()));
-    }
-
-    Ok(Json(output))
-}
-
-#[plugin_fn]
-pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
-    let env = get_proto_environment()?;
-    let mut global_shims = HashMap::new();
-
-    global_shims.insert(
-        "npx".into(),
-        ShimConfig::global_with_alt_bin(if env.os == HostOS::Windows {
-            "npx.cmd"
-        } else {
-            "bin/npx"
-        }),
-    );
-
-    Ok(Json(CreateShimsOutput {
-        global_shims,
-        ..CreateShimsOutput::default()
+            format!("bin/{}", BIN)
+        })),
+        ..LocateExecutablesOutput::default()
     }))
-}
-
-#[plugin_fn]
-pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
-    Ok(Json(DetectVersionOutput {
-        files: vec![
-            ".nvmrc".into(),
-            ".node-version".into(),
-            "package.json".into(),
-        ],
-    }))
-}
-
-#[plugin_fn]
-pub fn parse_version_file(
-    Json(input): Json<ParseVersionFileInput>,
-) -> FnResult<Json<ParseVersionFileOutput>> {
-    let mut version = None;
-
-    if input.file == "package.json" {
-        if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
-            if let Some(engines) = package_json.engines {
-                if let Some(constraint) = engines.get(BIN) {
-                    version = Some(UnresolvedVersionSpec::parse(constraint)?);
-                }
-            }
-        }
-    } else {
-        version = Some(UnresolvedVersionSpec::parse(input.content)?);
-    }
-
-    Ok(Json(ParseVersionFileOutput { version }))
 }
 
 #[plugin_fn]
@@ -291,4 +271,23 @@ pub fn post_install(Json(input): Json<InstallHook>) -> FnResult<()> {
     exec_command!(inherit, "proto", args);
 
     Ok(())
+}
+
+// DEPRECATED
+// Remove in v0.23!
+
+#[plugin_fn]
+pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+    let env = get_proto_environment()?;
+
+    Ok(Json(LocateBinsOutput {
+        bin_path: Some(if env.os == HostOS::Windows {
+            format!("{}.exe", BIN).into()
+        } else {
+            format!("bin/{}", BIN).into()
+        }),
+        fallback_last_globals_dir: true,
+        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
+        ..LocateBinsOutput::default()
+    }))
 }

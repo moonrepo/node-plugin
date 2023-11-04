@@ -1,6 +1,6 @@
 ---
 source: crates/node-depman/tests/shims_test.rs
-expression: "std::fs::read_to_string(sandbox.path().join(\".proto/bin\").join(if cfg!(windows)\n                    {\n                    format!(\"{}.cmd\", \"node-gyp\")\n                } else { \"node-gyp\".to_string() })).unwrap()"
+expression: "std::fs::read_to_string(sandbox.path().join(\".proto/shims\").join(if cfg!(windows)\n                    {\n                    format!(\"{}.cmd\", \"npx\")\n                } else { \"npx\".to_string() })).unwrap()"
 ---
 #!/usr/bin/env bash
 set -e
@@ -8,6 +8,6 @@ set -e
 
 
 
-exec proto run npm-test --bin "bin/node-gyp-bin/node-gyp" --  "$@" 
+exec proto run npm-test --bin "bin/npx" --  "$@" 
 
 

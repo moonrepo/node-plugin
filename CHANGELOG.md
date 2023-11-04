@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.5.0
+
+#### 💥 Breaking
+
+- Updated the `npm` tool to create the `npx` shim instead of the `node` tool.
+- Updated executable detection for package managers to use the shell scripts instead of the source `.js` files (when applicable).
+  - Previously we would execute the JS file with node: `node ./bin/npm-cli.js`
+  - Now we execute the shell script: `./bin/npm` (unix), `./bin/npm.cmd` (windows)
+
+#### 🚀 Updates
+
+- Updated to support proto v0.22 release.
+
+#### ⚙️ Internal
+
+- Updated dependencies.
+
 ## 0.4.3
 
 #### 🐞 Fixes
