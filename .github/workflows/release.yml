@@ -20,11 +20,10 @@ jobs:
           cache: false
           targets: wasm32-wasi
       - uses: moonrepo/build-proto-plugin@v0
-      - uses: ncipollo/release-action@v1
-        # if: ${{ github.event_name == 'push' }}
+      - if: ${{ github.event_name == 'push' && github.ref_type == 'tag' }}
+        uses: ncipollo/release-action@v1
         with:
-          artifactErrorsFailBuild: true
           artifacts: builds/*
-          tag: "test"
-          prerelease: ${{ contains(github.ref_name, '.alpha') || contains(github.ref_name, '.beta') || contains(github.ref_name, '.rc') }}
+          artifactErrorsFailBuild: true
+          prerelease: ${{ contains(github.ref_name, '-alpha') || contains(github.ref_name, '-beta') || contains(github.ref_name, '-rc') }}
           skipIfReleaseExists: true
