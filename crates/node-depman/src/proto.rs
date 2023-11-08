@@ -258,38 +258,46 @@ pub fn locate_executables(
 
     match &manager {
         PackageManager::Npm => {
-            primary = ExecutableConfig::new(env.os.get_file_name("bin/npm", "cmd"));
+            primary = ExecutableConfig::with_parent("bin/npm-cli.js", "node");
+            primary.exe_link_path = Some(env.os.get_file_name("bin/npm", "cmd").into());
 
             // npx
-            secondary.insert(
-                "npx".into(),
-                ExecutableConfig::new(env.os.get_file_name("bin/npx", "cmd")),
-            );
+            let mut npx = ExecutableConfig::with_parent("bin/npx-cli.js", "node");
+            npx.exe_link_path = Some(env.os.get_file_name("bin/npx", "cmd").into());
+
+            secondary.insert("npx".into(), npx);
 
             // node-gyp
-            secondary.insert(
-                "node-gyp".into(),
-                ExecutableConfig::new(env.os.get_file_name("bin/node-gyp-bin/node-gyp", "cmd")),
+            let mut node_gyp =
+                ExecutableConfig::with_parent("node_modules/node-gyp/bin/node-gyp.js", "node");
+            node_gyp.exe_link_path = Some(
+                env.os
+                    .get_file_name("bin/node-gyp-bin/node-gyp", "cmd")
+                    .into(),
             );
+
+            secondary.insert("node-gyp".into(), node_gyp);
         }
         PackageManager::Pnpm => {
-            primary = ExecutableConfig::new("bin/pnpm.cjs");
+            primary = ExecutableConfig::with_parent("bin/pnpm.cjs", "node");
             primary.no_bin = true; // Can't execute a JS file
 
             // pnpx
             secondary.insert(
                 "pnpx".into(),
                 ExecutableConfig {
+                    no_bin: true,
                     shim_before_args: Some("dlx".into()),
                     ..ExecutableConfig::default()
                 },
             );
         }
         PackageManager::Yarn => {
-            primary = ExecutableConfig::new(env.os.get_file_name("bin/yarn", "cmd"));
+            primary = ExecutableConfig::with_parent("bin/yarn.js", "node");
+            primary.exe_link_path = Some(env.os.get_file_name("bin/yarn", "cmd").into());
 
             // yarnpkg
-            secondary.insert("yarnpkg".into(), ExecutableConfig::default());
+            secondary.insert("yarnpkg".into(), primary.clone());
         }
     };
 

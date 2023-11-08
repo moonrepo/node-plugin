@@ -8,6 +8,6 @@ set -e
 
 
 
-exec proto run yarn-test --  "$@" 
+exec proto run yarn-test --alt "yarnpkg" --  "$@" 
 
 

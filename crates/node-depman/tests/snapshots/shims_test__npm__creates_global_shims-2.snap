@@ -8,6 +8,6 @@ set -e
 
 
 
-exec proto run npm-test --bin "bin/npx" --  "$@" 
+exec proto run npm-test --alt "npx" --  "$@" 
 
 

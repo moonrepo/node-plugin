@@ -55,7 +55,7 @@ mod npm {
                 .primary
                 .unwrap()
                 .exe_path,
-            Some("bin/npm".into())
+            Some("bin/npm-cli.js".into())
         );
     }
 }
@@ -173,7 +173,7 @@ mod yarn {
                 .primary
                 .unwrap()
                 .exe_path,
-            Some("bin/yarn".into())
+            Some("bin/yarn.js".into())
         );
     }
 }
@@ -233,7 +233,7 @@ mod yarn_berry {
                 .primary
                 .unwrap()
                 .exe_path,
-            Some("bin/yarn".into())
+            Some("bin/yarn.js".into())
         );
     }
 }
