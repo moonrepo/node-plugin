@@ -8,6 +8,6 @@ set -e
 
 
 
-exec proto run npm-test --bin "bin/node-gyp-bin/node-gyp" --  "$@" 
+exec proto run npm-test --alt "node-gyp" --  "$@" 
 
 
