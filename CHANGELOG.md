@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1
+
+#### 🐞 Fixes
+
+- Fixed Yarn >= v1.22.20 not unpacking correctly.
+
 ## 0.5.0
 
 #### 💥 Breaking

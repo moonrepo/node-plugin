@@ -209,6 +209,20 @@ pub fn resolve_version(
     Ok(Json(output))
 }
 
+fn get_archive_prefix(manager: &PackageManager, spec: &VersionSpec) -> String {
+    if manager.is_yarn_classic(spec.to_unresolved_spec()) {
+        if let VersionSpec::Version(version) = spec {
+            // Prefix changed to "package" in v1.22.20
+            // https://github.com/yarnpkg/yarn/releases/tag/v1.22.20
+            if version.minor <= 22 && version.patch <= 19 {
+                return format!("yarn-v{version}");
+            }
+        }
+    }
+
+    "package".into()
+}
+
 #[plugin_fn]
 pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
@@ -225,13 +239,6 @@ pub fn download_prebuilt(
 
     let package_name = manager.get_package_name(version.to_unresolved_spec());
 
-    // Derive values based on package manager
-    let archive_prefix = if manager.is_yarn_classic(version.to_unresolved_spec()) {
-        format!("yarn-v{version}")
-    } else {
-        "package".into()
-    };
-
     let package_without_scope = if package_name.contains('/') {
         package_name.split('/').nth(1).unwrap()
     } else {
@@ -239,7 +246,7 @@ pub fn download_prebuilt(
     };
 
     Ok(Json(DownloadPrebuiltOutput {
-        archive_prefix: Some(archive_prefix),
+        archive_prefix: Some(get_archive_prefix(&manager, &version)),
         download_url: format!(
             "https://registry.npmjs.org/{package_name}/-/{package_without_scope}-{version}.tgz",
         ),
