@@ -29,6 +29,7 @@ pub fn detect_version_files(_: ()) -> FnResult<Json<DetectVersionOutput>> {
             ".node-version".into(),
             "package.json".into(),
         ],
+        ignore: vec!["node_modules".into()],
     }))
 }
 
