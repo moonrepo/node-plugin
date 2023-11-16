@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.5.2
+
+#### 🚀 Updates
+
+- Updated to support proto v0.23 release.
+- Will now ignore detecting versions from `node_modules` paths.
+
 ## 0.5.1
 
 #### 🐞 Fixes
