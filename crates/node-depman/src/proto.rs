@@ -1,7 +1,7 @@
 use crate::npm_registry::parse_registry_response;
 use crate::package_manager::PackageManager;
 use extism_pdk::*;
-use node_common::{commands, BinField, NodeDistVersion, PackageJson};
+use node_common::{commands, get_globals_dirs, BinField, NodeDistVersion, PackageJson};
 use proto_pdk::*;
 use std::collections::HashMap;
 use std::fs;
@@ -310,7 +310,7 @@ pub fn locate_executables(
     };
 
     Ok(Json(LocateExecutablesOutput {
-        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
+        globals_lookup_dirs: get_globals_dirs(&env),
         primary: Some(primary),
         secondary,
         ..LocateExecutablesOutput::default()
@@ -393,6 +393,7 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
 
 #[plugin_fn]
 pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
+    let env = get_proto_environment()?;
     let mut bin_path = None;
     let package_path = input.context.tool_dir.join("package.json");
     let manager = PackageManager::detect();
@@ -436,7 +437,7 @@ pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBi
     Ok(Json(LocateBinsOutput {
         bin_path: bin_path.map(PathBuf::from),
         fallback_last_globals_dir: true,
-        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
+        globals_lookup_dirs: get_globals_dirs(&env),
         ..LocateBinsOutput::default()
     }))
 }

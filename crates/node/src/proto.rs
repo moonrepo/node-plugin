@@ -1,5 +1,5 @@
 use extism_pdk::*;
-use node_common::{commands, NodeDistLTS, NodeDistVersion, PackageJson};
+use node_common::{commands, get_globals_dirs, NodeDistLTS, NodeDistVersion, PackageJson};
 use proto_pdk::*;
 
 #[host_fn]
@@ -197,20 +197,6 @@ pub fn download_prebuilt(
         checksum_url: Some(format!("{host}/v{version}/SHASUMS256.txt")),
         ..DownloadPrebuiltOutput::default()
     }))
-}
-
-pub fn get_globals_dirs(env: &HostEnvironment) -> Vec<String> {
-    let mut dirs = vec![];
-
-    // Windows for some reason removes the /bin suffix when installing into it,
-    // so we also need to account for the path without /bin. But keep the /bin path
-    // as the final path and for the install to trigger correctly.
-    if env.os == HostOS::Windows {
-        dirs.push("$PROTO_HOME/tools/node/globals".into());
-    }
-
-    dirs.push("$PROTO_HOME/tools/node/globals/bin".into());
-    dirs
 }
 
 #[plugin_fn]
