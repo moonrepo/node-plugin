@@ -199,6 +199,20 @@ pub fn download_prebuilt(
     }))
 }
 
+pub fn get_globals_dirs(env: &HostEnvironment) -> Vec<String> {
+    let mut dirs = vec![];
+
+    // Windows for some reason removes the /bin suffix when installing into it,
+    // so we also need to account for the path without /bin. But keep the /bin path
+    // as the final path and for the install to trigger correctly.
+    if env.os == HostOS::Windows {
+        dirs.push("$PROTO_HOME/tools/node/globals".into());
+    }
+
+    dirs.push("$PROTO_HOME/tools/node/globals/bin".into());
+    dirs
+}
+
 #[plugin_fn]
 pub fn locate_executables(
     Json(_): Json<LocateExecutablesInput>,
@@ -206,7 +220,7 @@ pub fn locate_executables(
     let env = get_proto_environment()?;
 
     Ok(Json(LocateExecutablesOutput {
-        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
+        globals_lookup_dirs: get_globals_dirs(&env),
         primary: Some(ExecutableConfig::new(if env.os == HostOS::Windows {
             format!("{}.exe", BIN)
         } else {
@@ -288,7 +302,7 @@ pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOu
             format!("bin/{}", BIN).into()
         }),
         fallback_last_globals_dir: true,
-        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
+        globals_lookup_dirs: get_globals_dirs(&env),
         ..LocateBinsOutput::default()
     }))
 }

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+#### 🐞 Fixes
+
+- Fixed an incorrect globals directory on Windows.
+
 ## 0.5.2
 
 #### 🚀 Updates
