@@ -1,8 +1,7 @@
-use proto_pdk_api::{ExecCommandInput, HostEnvironment};
-use std::path::Path;
+use proto_pdk_api::{ExecCommandInput, HostEnvironment, VirtualPath};
 
-pub fn get_global_prefix<T: AsRef<Path>>(env: &HostEnvironment, globals_dir: T) -> String {
-    let prefix = globals_dir.as_ref().to_string_lossy().to_string();
+pub fn get_global_prefix(env: &HostEnvironment, globals_dir: &VirtualPath) -> String {
+    let prefix = globals_dir.real_path().to_string_lossy().to_string();
 
     // On Windows, globals will be installed into the prefix as-is,
     // so binaries will exist in the root of the prefix.

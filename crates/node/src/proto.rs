@@ -227,7 +227,7 @@ pub fn install_global(
 
     let result = exec_command!(commands::install_global(
         &input.dependency,
-        get_global_prefix(&env, input.globals_dir.real_path()),
+        get_global_prefix(&env, &input.globals_dir),
     ));
 
     Ok(Json(InstallGlobalOutput::from_exec_command(result)))
@@ -241,7 +241,7 @@ pub fn uninstall_global(
 
     let result = exec_command!(commands::uninstall_global(
         &input.dependency,
-        get_global_prefix(&env, input.globals_dir.real_path()),
+        get_global_prefix(&env, &input.globals_dir),
     ));
 
     Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
