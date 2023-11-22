@@ -1,11 +1,13 @@
+// Importing proto_pdk crashes Windows because it contains WASM code
 #[cfg(not(windows))]
 mod hooks {
+    use proto_pdk::{RunHook, ToolContext, UserConfigSettings};
+    use proto_pdk_test_utils::create_plugin;
+    use starbase_sandbox::create_empty_sandbox;
+    use std::env;
+
     mod npm {
         use super::*;
-        use proto_pdk::{RunHook, ToolContext, UserConfigSettings};
-        use proto_pdk_test_utils::create_plugin;
-        use starbase_sandbox::create_empty_sandbox;
-        use std::env;
 
         #[test]
         fn does_nothing_if_no_args() {
