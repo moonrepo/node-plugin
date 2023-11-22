@@ -2104,9 +2104,9 @@ dependencies = [
 
 [[package]]
 name = "proto_core"
-version = "0.23.0"
+version = "0.23.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "46d2573a386c1851ae91f412dc9495d54b13759d307588c148bef6a98b487591"
+checksum = "37b4467e6e2819e74fc2247ff2d69486713414386fcc6549d172748bbcfa2a57"
 dependencies = [
  "cached",
  "extism",
@@ -2125,6 +2125,7 @@ dependencies = [
  "starbase_events",
  "starbase_styles",
  "starbase_utils",
+ "system_env",
  "thiserror",
  "tinytemplate",
  "tracing",
@@ -2163,9 +2164,9 @@ dependencies = [
 
 [[package]]
 name = "proto_pdk_test_utils"
-version = "0.11.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e903c50774be861c179391305e68f529d758bb8255eb91c1c688c28c7d770bf"
+checksum = "2a2d0ec151cb028a169a2a87f184f54e3c6bda24c62a1cc22154df26be485343"
 dependencies = [
  "extism",
  "proto_core",
@@ -2582,9 +2583,9 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.192"
+version = "1.0.193"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bca2a08484b285dcb282d0f67b26cadc0df8b19f8c12502c13d966bf9482f001"
+checksum = "25dd9975e68d0cb5aa1120c288333fc98731bd1dd12f561e468ea4728c042b89"
 dependencies = [
  "serde_derive",
 ]
@@ -2601,9 +2602,9 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.192"
+version = "1.0.193"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6c7207fbec9faa48073f3e3074cbe553af6ea512d7c21ba46e434e70ea9fbc1"
+checksum = "43576ca501357b9b071ac53cdc7da8ef0cbd9493d8df094cd821777ea6e894d3"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2689,6 +2690,12 @@ dependencies = [
  "cpufeatures",
  "digest",
 ]
+
+[[package]]
+name = "shell-words"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "24188a676b6ae68c3b2cb3a01be17fbf7240ce009799bb56d5b1409051e78fde"
 
 [[package]]
 name = "shellexpand"
@@ -2845,9 +2852,9 @@ dependencies = [
 
 [[package]]
 name = "starbase_utils"
-version = "0.3.7"
+version = "0.3.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d948dcd63f1dd11f2b7a9ab15c53e7866faa11ccd31377dca1625c106d40fcee"
+checksum = "9af464d976956393070880234f8d9f3509f04555266174abfd9b11386cdce4bc"
 dependencies = [
  "dirs 5.0.1",
  "fs4",
@@ -2861,7 +2868,7 @@ dependencies = [
  "starbase_styles",
  "thiserror",
  "tokio",
- "toml 0.8.6",
+ "toml 0.8.8",
  "tracing",
  "wax",
 ]
@@ -2943,12 +2950,13 @@ dependencies = [
 
 [[package]]
 name = "system_env"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fb5430c2b1d8315d22edaebbd40617f9110ccfd95e95684802d0d17907f44966"
+checksum = "63476c953552c18056a153eaabc04d2987bc64f07633acc80d6a65a8574f1a3b"
 dependencies = [
  "serde",
  "serde_json",
+ "shell-words",
  "thiserror",
 ]
 
@@ -3167,14 +3175,14 @@ dependencies = [
 
 [[package]]
 name = "toml"
-version = "0.8.6"
+version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8ff9e3abce27ee2c9a37f9ad37238c1bdd4e789c84ba37df76aa4d528f5072cc"
+checksum = "a1a195ec8c9da26928f773888e0742ca3ca1040c6cd859c919c9f59c1954ab35"
 dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "toml_edit 0.20.7",
+ "toml_edit 0.21.0",
 ]
 
 [[package]]
@@ -3201,9 +3209,9 @@ dependencies = [
 
 [[package]]
 name = "toml_edit"
-version = "0.20.7"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "70f427fce4d84c72b5b732388bf4a9f4531b53f74e2887e3ecb2481f68f66d81"
+checksum = "d34d383cd00a163b4a5b85053df514d45bc330f6de7737edfe0a93311d1eaa03"
 dependencies = [
  "indexmap 2.0.0",
  "serde",
