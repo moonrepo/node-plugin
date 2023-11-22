@@ -1,10 +1,15 @@
 # Changelog
 
-## Unreleased
+## 0.5.3
 
 #### 🐞 Fixes
 
 - Fixed an incorrect globals directory on Windows.
+
+#### ⚙️ Internal
+
+- Updated dependencies.
+- Updated globals install to use a `--prefix` arg instead of `PREFIX` env var.
 
 ## 0.5.2
 

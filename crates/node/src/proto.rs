@@ -1,5 +1,8 @@
 use extism_pdk::*;
-use node_common::{commands, get_globals_dirs, NodeDistLTS, NodeDistVersion, PackageJson};
+use node_common::{
+    commands::{self, get_global_prefix},
+    NodeDistLTS, NodeDistVersion, PackageJson,
+};
 use proto_pdk::*;
 
 #[host_fn]
@@ -206,7 +209,7 @@ pub fn locate_executables(
     let env = get_proto_environment()?;
 
     Ok(Json(LocateExecutablesOutput {
-        globals_lookup_dirs: get_globals_dirs(&env),
+        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
         primary: Some(ExecutableConfig::new(if env.os == HostOS::Windows {
             format!("{}.exe", BIN)
         } else {
@@ -220,9 +223,11 @@ pub fn locate_executables(
 pub fn install_global(
     Json(input): Json<InstallGlobalInput>,
 ) -> FnResult<Json<InstallGlobalOutput>> {
+    let env = get_proto_environment()?;
+
     let result = exec_command!(commands::install_global(
         &input.dependency,
-        &input.globals_dir.real_path(),
+        get_global_prefix(&env, input.globals_dir.real_path()),
     ));
 
     Ok(Json(InstallGlobalOutput::from_exec_command(result)))
@@ -232,9 +237,11 @@ pub fn install_global(
 pub fn uninstall_global(
     Json(input): Json<UninstallGlobalInput>,
 ) -> FnResult<Json<UninstallGlobalOutput>> {
+    let env = get_proto_environment()?;
+
     let result = exec_command!(commands::uninstall_global(
         &input.dependency,
-        &input.globals_dir.real_path(),
+        get_global_prefix(&env, input.globals_dir.real_path()),
     ));
 
     Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
@@ -288,7 +295,7 @@ pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOu
             format!("bin/{}", BIN).into()
         }),
         fallback_last_globals_dir: true,
-        globals_lookup_dirs: get_globals_dirs(&env),
+        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
         ..LocateBinsOutput::default()
     }))
 }
