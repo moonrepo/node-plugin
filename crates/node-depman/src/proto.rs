@@ -1,7 +1,10 @@
 use crate::npm_registry::parse_registry_response;
 use crate::package_manager::PackageManager;
 use extism_pdk::*;
-use node_common::{commands, BinField, NodeDistVersion, PackageJson};
+use node_common::{
+    commands::{self, get_global_prefix},
+    BinField, NodeDistVersion, PackageJson,
+};
 use proto_pdk::*;
 use std::collections::HashMap;
 use std::fs;
@@ -247,7 +250,7 @@ pub fn download_prebuilt(
     };
 
     Ok(Json(DownloadPrebuiltOutput {
-        archive_prefix: Some(get_archive_prefix(&manager, &version)),
+        archive_prefix: Some(get_archive_prefix(&manager, version)),
         download_url: format!(
             "https://registry.npmjs.org/{package_name}/-/{package_without_scope}-{version}.tgz",
         ),
@@ -321,9 +324,11 @@ pub fn locate_executables(
 pub fn install_global(
     Json(input): Json<InstallGlobalInput>,
 ) -> FnResult<Json<InstallGlobalOutput>> {
+    let env = get_proto_environment()?;
+
     let result = exec_command!(commands::install_global(
         &input.dependency,
-        &input.globals_dir.real_path(),
+        get_global_prefix(&env, &input.globals_dir),
     ));
 
     Ok(Json(InstallGlobalOutput::from_exec_command(result)))
@@ -333,9 +338,11 @@ pub fn install_global(
 pub fn uninstall_global(
     Json(input): Json<UninstallGlobalInput>,
 ) -> FnResult<Json<UninstallGlobalOutput>> {
+    let env = get_proto_environment()?;
+
     let result = exec_command!(commands::uninstall_global(
         &input.dependency,
-        &input.globals_dir.real_path(),
+        get_global_prefix(&env, &input.globals_dir),
     ));
 
     Ok(Json(UninstallGlobalOutput::from_exec_command(result)))

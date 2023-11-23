@@ -1,5 +1,8 @@
 use extism_pdk::*;
-use node_common::{commands, NodeDistLTS, NodeDistVersion, PackageJson};
+use node_common::{
+    commands::{self, get_global_prefix},
+    NodeDistLTS, NodeDistVersion, PackageJson,
+};
 use proto_pdk::*;
 
 #[host_fn]
@@ -220,9 +223,11 @@ pub fn locate_executables(
 pub fn install_global(
     Json(input): Json<InstallGlobalInput>,
 ) -> FnResult<Json<InstallGlobalOutput>> {
+    let env = get_proto_environment()?;
+
     let result = exec_command!(commands::install_global(
         &input.dependency,
-        &input.globals_dir.real_path(),
+        get_global_prefix(&env, &input.globals_dir),
     ));
 
     Ok(Json(InstallGlobalOutput::from_exec_command(result)))
@@ -232,9 +237,11 @@ pub fn install_global(
 pub fn uninstall_global(
     Json(input): Json<UninstallGlobalInput>,
 ) -> FnResult<Json<UninstallGlobalOutput>> {
+    let env = get_proto_environment()?;
+
     let result = exec_command!(commands::uninstall_global(
         &input.dependency,
-        &input.globals_dir.real_path(),
+        get_global_prefix(&env, &input.globals_dir),
     ));
 
     Ok(Json(UninstallGlobalOutput::from_exec_command(result)))

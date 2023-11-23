@@ -1,13 +1,12 @@
 // These work locally but fail in CI... hard to debug!
 
-// use proto_pdk_test_utils::*;
-// use starbase_sandbox::create_empty_sandbox;
+use proto_pdk_test_utils::*;
 
-// mod npm {
-//     use super::*;
+mod npm {
+    use super::*;
 
-//     generate_globals_test!("npm-test", "prettier");
-// }
+    generate_globals_test!("npm-test", "prettier");
+}
 
 // mod pnpm {
 //     use super::*;

@@ -1,23 +1,25 @@
-use proto_pdk::InstallHook;
-use proto_pdk_test_utils::{core::VersionSpec, create_plugin, ToolManifest, UnresolvedVersionSpec};
-use serial_test::serial;
-use starbase_sandbox::create_empty_sandbox;
-use std::collections::HashSet;
-use std::env;
-use std::path::PathBuf;
-
-fn set_vars(path: PathBuf) {
-    env::set_var("PROTO_HOME", path.to_string_lossy().to_string());
-    env::set_var("PROTO_NODE_VERSION", "18.0.0");
-}
-
-fn reset_vars() {
-    env::remove_var("PROTO_HOME");
-    env::remove_var("PROTO_NODE_VERSION");
-}
-
+// Importing proto_pdk crashes Windows because it contains WASM code
+#[cfg(not(windows))]
 mod node_hooks {
-    use super::*;
+    use proto_pdk::InstallHook;
+    use proto_pdk_test_utils::{
+        core::VersionSpec, create_plugin, ToolManifest, UnresolvedVersionSpec,
+    };
+    use serial_test::serial;
+    use starbase_sandbox::create_empty_sandbox;
+    use std::collections::HashSet;
+    use std::env;
+    use std::path::PathBuf;
+
+    fn set_vars(path: PathBuf) {
+        env::set_var("PROTO_HOME", path.to_string_lossy().to_string());
+        env::set_var("PROTO_NODE_VERSION", "18.0.0");
+    }
+
+    fn reset_vars() {
+        env::remove_var("PROTO_HOME");
+        env::remove_var("PROTO_NODE_VERSION");
+    }
 
     #[test]
     #[serial]
