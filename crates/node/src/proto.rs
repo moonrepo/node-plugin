@@ -1,7 +1,7 @@
 use extism_pdk::*;
 use node_common::{
     commands::{self, get_global_prefix},
-    NodeDistLTS, NodeDistVersion, PackageJson,
+    NodeDistLTS, NodeDistVersion, PackageJson, PluginConfig,
 };
 use proto_pdk::*;
 
@@ -249,10 +249,13 @@ pub fn uninstall_global(
 
 #[plugin_fn]
 pub fn post_install(Json(input): Json<InstallHook>) -> FnResult<()> {
-    if input
-        .passthrough_args
-        .iter()
-        .any(|arg| arg == "--no-bundled-npm")
+    let config = get_tool_config::<PluginConfig>()?;
+
+    if !config.bundled_npm
+        || input
+            .passthrough_args
+            .iter()
+            .any(|arg| arg == "--no-bundled-npm")
     {
         return Ok(());
     }
@@ -265,15 +268,21 @@ pub fn post_install(Json(input): Json<InstallHook>) -> FnResult<()> {
         args.push("--pin");
     }
 
-    if !input.passthrough_args.is_empty() {
+    let passthrough_args = input
+        .passthrough_args
+        .iter()
+        .filter_map(|arg| {
+            if arg.as_str() == "--no-bundled-npm" {
+                None
+            } else {
+                Some(arg.as_str())
+            }
+        })
+        .collect::<Vec<_>>();
+
+    if !passthrough_args.is_empty() {
         args.push("--");
-        args.extend(
-            input
-                .passthrough_args
-                .iter()
-                .map(|a| a.as_str())
-                .collect::<Vec<_>>(),
-        );
+        args.extend(passthrough_args);
     }
 
     exec_command!(inherit, "proto", args);

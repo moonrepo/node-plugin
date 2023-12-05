@@ -3,7 +3,7 @@ use crate::package_manager::PackageManager;
 use extism_pdk::*;
 use node_common::{
     commands::{self, get_global_prefix},
-    BinField, NodeDistVersion, PackageJson,
+    BinField, NodeDistVersion, PackageJson, PluginConfig,
 };
 use proto_pdk::*;
 use std::collections::HashMap;
@@ -351,12 +351,9 @@ pub fn uninstall_global(
 #[plugin_fn]
 pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
     let args = &input.passthrough_args;
-    let user_config = get_proto_user_config()?;
+    let config = get_tool_config::<PluginConfig>()?;
 
-    if args.len() < 3
-        || host_env!("PROTO_INSTALL_GLOBAL").is_some()
-        || !user_config.node_intercept_globals
-    {
+    if args.len() < 3 || !config.intercept_globals || host_env!("PROTO_INSTALL_GLOBAL").is_some() {
         return Ok(());
     }
 
@@ -387,8 +384,8 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
         return err!(
             "Global binaries must be installed with `proto install-global {}`!\nLearn more: {}\n\nOpt-out of this functionality with `{}`.",
             manager.to_string(),
-            "https://moonrepo.dev/docs/proto/faq#how-can-i-install-a-global-binary-for-a-language",
-            "node-intercept-globals = false",
+            "https://github.com/moonrepo/node-plugin#configuration",
+            "tools.node.intercept-globals = false",
         );
     }
 
