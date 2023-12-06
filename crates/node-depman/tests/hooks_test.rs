@@ -39,7 +39,7 @@ mod hooks {
 
             plugin.tool.plugin.manifest.config.insert(
                 "proto_tool_config".into(),
-                r#"{"intercept-globals":true}"#.to_owned(),
+                r#"{"intercept-globals":false}"#.to_owned(),
             );
 
             plugin.tool.plugin.reload_config().unwrap();
