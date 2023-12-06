@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.6.0
+
+#### 🚀 Updates
+
+- Added 2 new settings: `intercept-globals` and `bundled-npm`.
+- Updated to support proto v0.24 release.
+
+#### ⚙️ Internal
+
+- Updated dependencies.
+
 ## 0.5.3
 
 #### 🐞 Fixes

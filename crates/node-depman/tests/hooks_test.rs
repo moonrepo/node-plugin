@@ -1,7 +1,7 @@
 // Importing proto_pdk crashes Windows because it contains WASM code
 #[cfg(not(windows))]
 mod hooks {
-    use proto_pdk::{RunHook, ToolContext, UserConfigSettings};
+    use proto_pdk::{RunHook, ToolContext};
     use proto_pdk_test_utils::create_plugin;
     use starbase_sandbox::create_empty_sandbox;
     use std::env;
@@ -38,12 +38,8 @@ mod hooks {
             let mut plugin = create_plugin("npm-test", sandbox.path());
 
             plugin.tool.plugin.manifest.config.insert(
-                "proto_user_config".into(),
-                serde_json::to_string(&UserConfigSettings {
-                    node_intercept_globals: false,
-                    ..UserConfigSettings::default()
-                })
-                .unwrap(),
+                "proto_tool_config".into(),
+                r#"{"intercept-globals":true}"#.to_owned(),
             );
 
             plugin.tool.plugin.reload_config().unwrap();
