@@ -4,9 +4,11 @@ expression: "std::fs::read_to_string(sandbox.path().join(\".proto/shims\").join(
 ---
 #!/usr/bin/env bash
 set -e
-[ -n "$PROTO_DEBUG" ] && set -x
 
+if [ -n "$PROTO_DEBUG" ]; then
+    set -x
+    echo "Running with yarn-test.sh shim"
+fi
 
 exec proto run yarn-test --alt "yarnpkg" --  "$@" 
-
 
