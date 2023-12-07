@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1
+
+#### 🚀 Updates
+
+- Added `lts` and `lts-latest` as supported remote aliases.
+
 ## 0.6.0
 
 #### 🚀 Updates

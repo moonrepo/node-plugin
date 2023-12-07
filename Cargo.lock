@@ -1949,7 +1949,7 @@ dependencies = [
 
 [[package]]
 name = "node_depman_plugin"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "extism-pdk",
  "node_common",
@@ -1964,7 +1964,7 @@ dependencies = [
 
 [[package]]
 name = "node_plugin"
-version = "0.6.0"
+version = "0.6.1"
 dependencies = [
  "extism-pdk",
  "node_common",
@@ -2295,9 +2295,9 @@ dependencies = [
 
 [[package]]
 name = "proto_core"
-version = "0.24.0"
+version = "0.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0fd739ac06372f62e810f289a0dc7346d56534c7c0f87c8f61a149f5b2522620"
+checksum = "4ac02867fe7e2ab9837e7c942eceacd2839c7d9bdb78a39b6e9c61fe86af479c"
 dependencies = [
  "cached",
  "extism",
@@ -2356,9 +2356,9 @@ dependencies = [
 
 [[package]]
 name = "proto_pdk_test_utils"
-version = "0.12.0"
+version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "60027d4095318e5fe36443ce3d5a4f011101350ac8344d6c241cddc93bfbf0ad"
+checksum = "2e6ac37eee537378ce721879dd5ec242ac52af171fc52766a0e293c9061ec7ab"
 dependencies = [
  "extism",
  "proto_core",

@@ -6,7 +6,7 @@ members = ["crates/*"]
 extism-pdk = "0.3.4"
 proto_pdk = { version = "0.11.1" } # , path = "../../proto/crates/pdk" }
 proto_pdk_api = { version = "0.11.1" } # , path = "../../proto/crates/pdk-api" }
-proto_pdk_test_utils = { version = "0.12.0" } # , path = "../../proto/crates/pdk-test-utils" }
+proto_pdk_test_utils = { version = "0.12.1" } # , path = "../../proto/crates/pdk-test-utils" }
 regex = { version = "1.10.2", default-features = false, features = [
 	"std",
 	"unicode",

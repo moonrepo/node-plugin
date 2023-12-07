@@ -104,7 +104,7 @@ pub fn resolve_version(
     if let UnresolvedVersionSpec::Alias(alias) = input.initial {
         let candidate = if alias == "node" {
             "latest"
-        } else if alias == "lts-*" || alias == "lts/*" {
+        } else if alias == "lts" || alias == "lts-latest" || alias == "lts-*" || alias == "lts/*" {
             "stable"
         } else if alias.starts_with("lts-") || alias.starts_with("lts/") {
             &alias[4..]
