@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.7.0
+
+#### 💥 Breaking
+
+- Will no longer symlink binaries (`~/.proto/bin`) for all package managers.
+  - You'll need to rely on shims for proper functonality.
+  - And you'll most likely need to delete any old bins manually.
+
+#### 🚀 Updates
+
+- Updated to support proto v0.26 release.
+
+#### ⚙️ Internal
+
+- Updated dependencies.
+
 ## 0.6.1
 
 #### 🚀 Updates
