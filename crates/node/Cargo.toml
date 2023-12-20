@@ -1,6 +1,6 @@
 [package]
 name = "node_plugin"
-version = "0.6.1"
+version = "0.7.0"
 edition = "2021"
 license = "MIT"
 publish = false
@@ -19,3 +19,7 @@ proto_pdk_test_utils = { workspace = true }
 serial_test = "2.0.0"
 starbase_sandbox = { workspace = true }
 tokio = { workspace = true }
+
+[features]
+default = ["wasm"]
+wasm = []

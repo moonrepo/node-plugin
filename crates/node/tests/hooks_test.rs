@@ -3,7 +3,8 @@
 mod node_hooks {
     use proto_pdk::InstallHook;
     use proto_pdk_test_utils::{
-        core::VersionSpec, create_plugin, ToolManifest, UnresolvedVersionSpec,
+        core::{ProtoConfig, VersionSpec},
+        create_plugin, ToolManifest, UnresolvedVersionSpec,
     };
     use serial_test::serial;
     use starbase_sandbox::create_empty_sandbox;
@@ -41,12 +42,15 @@ mod node_hooks {
             ToolManifest::load(sandbox.path().join(".proto/tools/npm/manifest.json")).unwrap();
 
         assert_eq!(
-            manifest.default_version,
-            Some(UnresolvedVersionSpec::parse("bundled").unwrap())
-        );
-        assert_eq!(
             manifest.installed_versions,
             HashSet::from_iter([VersionSpec::parse("8.6.0").unwrap()])
+        );
+
+        let config = ProtoConfig::load_from(sandbox.path().join(".proto"), false).unwrap();
+
+        assert_eq!(
+            config.versions.unwrap().get("npm").unwrap(),
+            &UnresolvedVersionSpec::parse("8.6.0").unwrap()
         );
     }
 
@@ -65,12 +69,11 @@ mod node_hooks {
 
         reset_vars();
 
-        let manifest =
-            ToolManifest::load(sandbox.path().join(".proto/tools/npm/manifest.json")).unwrap();
+        let config = ProtoConfig::load_from(sandbox.path().join(".proto"), false).unwrap();
 
         assert_eq!(
-            manifest.default_version,
-            Some(UnresolvedVersionSpec::parse("8.6.0").unwrap())
+            config.versions.unwrap().get("npm").unwrap(),
+            &UnresolvedVersionSpec::parse("8.6.0").unwrap()
         );
     }
 

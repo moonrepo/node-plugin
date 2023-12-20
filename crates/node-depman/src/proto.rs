@@ -262,50 +262,50 @@ pub fn download_prebuilt(
 pub fn locate_executables(
     Json(_): Json<LocateExecutablesInput>,
 ) -> FnResult<Json<LocateExecutablesOutput>> {
-    let env = get_proto_environment()?;
     let manager = PackageManager::detect();
     let mut secondary = HashMap::default();
     let mut primary;
 
+    // We don't link binaries for package managers for the following reasons:
+    // 1 - We can't link JS files because they aren't executable.
+    // 2 - We can't link the bash/cmd wrappers, as they expect the files to exist
+    //     relative from the node install directory, which they do not.
+
     match &manager {
         PackageManager::Npm => {
             primary = ExecutableConfig::with_parent("bin/npm-cli.js", "node");
-            primary.exe_link_path = Some(env.os.get_file_name("bin/npm", "cmd").into());
+            primary.no_bin = true;
 
             // npx
             let mut npx = ExecutableConfig::with_parent("bin/npx-cli.js", "node");
-            npx.exe_link_path = Some(env.os.get_file_name("bin/npx", "cmd").into());
+            npx.no_bin = true;
 
             secondary.insert("npx".into(), npx);
 
             // node-gyp
             let mut node_gyp =
                 ExecutableConfig::with_parent("node_modules/node-gyp/bin/node-gyp.js", "node");
-            node_gyp.exe_link_path = Some(
-                env.os
-                    .get_file_name("bin/node-gyp-bin/node-gyp", "cmd")
-                    .into(),
-            );
+            node_gyp.no_bin = true;
 
             secondary.insert("node-gyp".into(), node_gyp);
         }
         PackageManager::Pnpm => {
             primary = ExecutableConfig::with_parent("bin/pnpm.cjs", "node");
-            primary.no_bin = true; // Can't execute a JS file
+            primary.no_bin = true;
 
             // pnpx
             secondary.insert(
                 "pnpx".into(),
                 ExecutableConfig {
                     no_bin: true,
-                    shim_before_args: Some("dlx".into()),
+                    shim_before_args: Some(StringOrVec::String("dlx".into())),
                     ..ExecutableConfig::default()
                 },
             );
         }
         PackageManager::Yarn => {
             primary = ExecutableConfig::with_parent("bin/yarn.js", "node");
-            primary.exe_link_path = Some(env.os.get_file_name("bin/yarn", "cmd").into());
+            primary.no_bin = true;
 
             // yarnpkg
             secondary.insert("yarnpkg".into(), primary.clone());

@@ -1,6 +1,6 @@
 [package]
 name = "node_depman_plugin"
-version = "0.6.1"
+version = "0.7.0"
 edition = "2021"
 license = "MIT"
 publish = false
@@ -20,3 +20,7 @@ proto_pdk_test_utils = { workspace = true }
 serde_json = { workspace = true }
 starbase_sandbox = { workspace = true }
 tokio = { workspace = true }
+
+[features]
+default = ["wasm"]
+wasm = []

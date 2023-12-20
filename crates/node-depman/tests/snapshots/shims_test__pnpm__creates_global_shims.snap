@@ -1,14 +1,13 @@
 ---
 source: crates/node-depman/tests/shims_test.rs
-expression: "std::fs::read_to_string(sandbox.path().join(\".proto/shims\").join(if cfg!(windows)\n                    {\n                    format!(\"{}.cmd\", \"pnpm-test\")\n                } else { \"pnpm-test\".to_string() })).unwrap()"
+expression: "std::fs::read_to_string(sandbox.path().join(\".proto/shims/registry.json\")).unwrap()"
 ---
-#!/usr/bin/env bash
-set -e
-
-if [ -n "$PROTO_DEBUG" ]; then
-    set -x
-    echo "Running with pnpm-test.sh shim"
-fi
-
-exec proto run pnpm-test --  "$@" 
-
+{
+  "pnpm-test": {},
+  "pnpx": {
+    "parent": "pnpm-test",
+    "before_args": [
+      "dlx"
+    ]
+  }
+}
