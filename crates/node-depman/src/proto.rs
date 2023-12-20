@@ -298,7 +298,7 @@ pub fn locate_executables(
                 "pnpx".into(),
                 ExecutableConfig {
                     no_bin: true,
-                    shim_before_args: Some("dlx".into()),
+                    shim_before_args: Some(StringOrVec::String("dlx".into())),
                     ..ExecutableConfig::default()
                 },
             );
