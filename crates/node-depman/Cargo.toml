@@ -20,3 +20,7 @@ proto_pdk_test_utils = { workspace = true }
 serde_json = { workspace = true }
 starbase_sandbox = { workspace = true }
 tokio = { workspace = true }
+
+[features]
+default = ["wasm"]
+wasm = []
