@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use extism_pdk::Error;
 use proto_pdk::{get_tool_id, UnresolvedVersionSpec};
 use std::fmt;
 
@@ -11,16 +12,16 @@ pub enum PackageManager {
 }
 
 impl PackageManager {
-    pub fn detect() -> PackageManager {
-        let id = get_tool_id();
+    pub fn detect() -> Result<PackageManager, Error> {
+        let id = get_tool_id()?;
 
-        if id.to_lowercase().contains("yarn") {
+        Ok(if id.to_lowercase().contains("yarn") {
             PackageManager::Yarn
         } else if id.to_lowercase().contains("pnpm") {
             PackageManager::Pnpm
         } else {
             PackageManager::Npm
-        }
+        })
     }
 
     pub fn get_package_name(&self, version: impl AsRef<UnresolvedVersionSpec>) -> String {
