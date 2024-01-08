@@ -2,8 +2,9 @@
 #[cfg(not(windows))]
 mod hooks {
     use proto_pdk::{RunHook, ToolContext};
-    use proto_pdk_test_utils::create_plugin;
+    use proto_pdk_test_utils::*;
     use starbase_sandbox::create_empty_sandbox;
+    use std::collections::HashMap;
     use std::env;
 
     mod npm {
@@ -35,14 +36,14 @@ mod hooks {
         #[test]
         fn can_bypass_with_user_config() {
             let sandbox = create_empty_sandbox();
-            let mut plugin = create_plugin("npm-test", sandbox.path());
-
-            plugin.tool.plugin.manifest.config.insert(
-                "proto_tool_config".into(),
-                r#"{"intercept-globals":false}"#.to_owned(),
+            let plugin = create_plugin_with_config(
+                "npm-test",
+                sandbox.path(),
+                HashMap::from_iter([(
+                    "proto_tool_config".into(),
+                    r#"{"intercept-globals":false}"#.to_owned(),
+                )]),
             );
-
-            plugin.tool.plugin.reload_config().unwrap();
 
             plugin.pre_run(RunHook {
                 passthrough_args: vec!["install".into(), "-g".into(), "typescript".into()],
