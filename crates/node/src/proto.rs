@@ -289,22 +289,3 @@ pub fn post_install(Json(input): Json<InstallHook>) -> FnResult<()> {
 
     Ok(())
 }
-
-// DEPRECATED
-// Remove in v0.23!
-
-#[plugin_fn]
-pub fn locate_bins(Json(_): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
-    let env = get_proto_environment()?;
-
-    Ok(Json(LocateBinsOutput {
-        bin_path: Some(if env.os == HostOS::Windows {
-            format!("{}.exe", BIN).into()
-        } else {
-            format!("bin/{}", BIN).into()
-        }),
-        fallback_last_globals_dir: true,
-        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
-        ..LocateBinsOutput::default()
-    }))
-}

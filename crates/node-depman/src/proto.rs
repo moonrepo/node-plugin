@@ -3,12 +3,10 @@ use crate::package_manager::PackageManager;
 use extism_pdk::*;
 use node_common::{
     commands::{self, get_global_prefix},
-    BinField, NodeDistVersion, PackageJson, PluginConfig,
+    NodeDistVersion, PackageJson, PluginConfig,
 };
 use proto_pdk::*;
 use std::collections::HashMap;
-use std::fs;
-use std::path::PathBuf;
 
 #[host_fn]
 extern "ExtismHost" {
@@ -19,7 +17,7 @@ extern "ExtismHost" {
 
 #[plugin_fn]
 pub fn register_tool(Json(_): Json<ToolMetadataInput>) -> FnResult<Json<ToolMetadataOutput>> {
-    let manager = PackageManager::detect();
+    let manager = PackageManager::detect()?;
 
     Ok(Json(ToolMetadataOutput {
         name: manager.to_string(),
@@ -50,7 +48,7 @@ pub fn parse_version_file(
 
     if input.file == "package.json" {
         if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
-            let manager_name = PackageManager::detect().to_string();
+            let manager_name = PackageManager::detect()?.to_string();
 
             if let Some(pm) = package_json.package_manager {
                 let mut parts = pm.split('@');
@@ -88,7 +86,7 @@ pub fn parse_version_file(
 #[plugin_fn]
 pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<LoadVersionsOutput>> {
     let mut output = LoadVersionsOutput::default();
-    let manager = PackageManager::detect();
+    let manager = PackageManager::detect()?;
     let package_name = manager.get_package_name(&input.initial);
 
     let mut map_output = |res: HttpResponse, is_yarn: bool| -> Result<(), Error> {
@@ -146,7 +144,7 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
 pub fn resolve_version(
     Json(input): Json<ResolveVersionInput>,
 ) -> FnResult<Json<ResolveVersionOutput>> {
-    let manager = PackageManager::detect();
+    let manager = PackageManager::detect()?;
     let mut output = ResolveVersionOutput::default();
 
     match manager {
@@ -232,7 +230,7 @@ pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
     let version = &input.context.version;
-    let manager = PackageManager::detect();
+    let manager = PackageManager::detect()?;
 
     if version.is_canary() {
         return err!(PluginError::UnsupportedCanary {
@@ -262,7 +260,7 @@ pub fn download_prebuilt(
 pub fn locate_executables(
     Json(_): Json<LocateExecutablesInput>,
 ) -> FnResult<Json<LocateExecutablesOutput>> {
-    let manager = PackageManager::detect();
+    let manager = PackageManager::detect()?;
     let mut secondary = HashMap::default();
     let mut primary;
 
@@ -357,7 +355,7 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
         return Ok(());
     }
 
-    let manager = PackageManager::detect();
+    let manager = PackageManager::detect()?;
     let mut is_install_command = false;
     let mut is_global = false;
 
@@ -390,122 +388,4 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
     }
 
     Ok(())
-}
-
-// DEPRECATED
-// Remove in v0.23!
-
-#[plugin_fn]
-pub fn locate_bins(Json(input): Json<LocateBinsInput>) -> FnResult<Json<LocateBinsOutput>> {
-    let mut bin_path = None;
-    let package_path = input.context.tool_dir.join("package.json");
-    let manager = PackageManager::detect();
-    let manager_name = manager.to_string();
-
-    // Extract the binary from the `package.json`
-    if package_path.exists() {
-        if let Ok(package_json) = json::from_slice::<PackageJson>(&fs::read(package_path)?) {
-            if let Some(bin_field) = package_json.bin {
-                match bin_field {
-                    BinField::String(bin) => {
-                        bin_path = Some(bin);
-                    }
-                    BinField::Object(map) => {
-                        if let Some(bin) = map.get(&manager_name) {
-                            bin_path = Some(bin.to_owned());
-                        }
-                    }
-                };
-            }
-
-            if bin_path.is_none() {
-                if let Some(main_field) = package_json.main {
-                    bin_path = Some(main_field);
-                }
-            }
-        }
-    }
-
-    if bin_path.is_none() {
-        bin_path = Some(format!(
-            "bin/{}",
-            if manager == PackageManager::Pnpm {
-                "pnpm.cjs".to_owned()
-            } else {
-                manager_name
-            }
-        ));
-    }
-
-    Ok(Json(LocateBinsOutput {
-        bin_path: bin_path.map(PathBuf::from),
-        fallback_last_globals_dir: true,
-        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
-        ..LocateBinsOutput::default()
-    }))
-}
-
-#[plugin_fn]
-pub fn create_shims(Json(_): Json<CreateShimsInput>) -> FnResult<Json<CreateShimsOutput>> {
-    let env = get_proto_environment()?;
-    let manager = PackageManager::detect();
-    let mut global_shims = HashMap::<String, ShimConfig>::new();
-    let mut local_shims = HashMap::<String, ShimConfig>::new();
-
-    match manager {
-        PackageManager::Npm => {
-            local_shims.insert(
-                "npm".into(),
-                ShimConfig::local_with_parent("bin/npm-cli.js", "node"),
-            );
-
-            // node-gyp
-            global_shims.insert(
-                "node-gyp".into(),
-                ShimConfig::global_with_alt_bin(if env.os == HostOS::Windows {
-                    "bin/node-gyp-bin/node-gyp.cmd"
-                } else {
-                    "bin/node-gyp-bin/node-gyp"
-                }),
-            );
-
-            // npx
-            global_shims.insert(
-                "npx".into(),
-                ShimConfig::global_with_alt_bin(if env.os == HostOS::Windows {
-                    "bin/npx.cmd"
-                } else {
-                    "bin/npx"
-                }),
-            );
-        }
-        PackageManager::Pnpm => {
-            local_shims.insert(
-                "pnpm".into(),
-                ShimConfig::local_with_parent("bin/pnpm.cjs", "node"),
-            );
-
-            // pnpx
-            global_shims.insert("pnpx".into(), ShimConfig::global_with_sub_command("dlx"));
-        }
-        PackageManager::Yarn => {
-            local_shims.insert(
-                "yarn".into(),
-                ShimConfig::local_with_parent("bin/yarn.js", "node"),
-            );
-
-            // yarnpkg
-            global_shims.insert("yarnpkg".into(), ShimConfig::default());
-        }
-    };
-
-    Ok(Json(CreateShimsOutput {
-        primary: Some(ShimConfig {
-            parent_bin: Some("node".into()),
-            ..ShimConfig::default()
-        }),
-        global_shims,
-        local_shims,
-        ..CreateShimsOutput::default()
-    }))
 }

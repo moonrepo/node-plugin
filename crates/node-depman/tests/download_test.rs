@@ -1,5 +1,6 @@
 use proto_pdk_test_utils::*;
 use starbase_sandbox::create_empty_sandbox;
+use std::collections::HashMap;
 
 mod npm {
     use super::*;
@@ -9,13 +10,11 @@ mod npm {
     #[test]
     fn supports_prebuilt() {
         let sandbox = create_empty_sandbox();
-        let mut plugin = create_plugin("npm-test", sandbox.path());
-
-        plugin.set_environment(HostEnvironment {
-            arch: HostArch::Arm64,
-            os: HostOS::Linux,
-            ..Default::default()
-        });
+        let plugin = create_plugin_with_config(
+            "npm-test",
+            sandbox.path(),
+            HashMap::from_iter([map_config_environment(HostOS::Linux, HostArch::Arm64)]),
+        );
 
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -36,13 +35,11 @@ mod npm {
     #[test]
     fn locates_default_bin() {
         let sandbox = create_empty_sandbox();
-        let mut plugin = create_plugin("npm-test", sandbox.path());
-
-        plugin.set_environment(HostEnvironment {
-            arch: HostArch::Arm64,
-            os: HostOS::Linux,
-            ..Default::default()
-        });
+        let plugin = create_plugin_with_config(
+            "npm-test",
+            sandbox.path(),
+            HashMap::from_iter([map_config_environment(HostOS::Linux, HostArch::Arm64)]),
+        );
 
         assert_eq!(
             plugin
@@ -68,13 +65,11 @@ mod pnpm {
     #[test]
     fn supports_prebuilt() {
         let sandbox = create_empty_sandbox();
-        let mut plugin = create_plugin("pnpm-test", sandbox.path());
-
-        plugin.set_environment(HostEnvironment {
-            arch: HostArch::X64,
-            os: HostOS::Windows,
-            ..Default::default()
-        });
+        let plugin = create_plugin_with_config(
+            "pnpm-test",
+            sandbox.path(),
+            HashMap::from_iter([map_config_environment(HostOS::Windows, HostArch::X64)]),
+        );
 
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -95,13 +90,11 @@ mod pnpm {
     #[test]
     fn locates_default_bin() {
         let sandbox = create_empty_sandbox();
-        let mut plugin = create_plugin("pnpm-test", sandbox.path());
-
-        plugin.set_environment(HostEnvironment {
-            arch: HostArch::X64,
-            os: HostOS::Windows,
-            ..Default::default()
-        });
+        let plugin = create_plugin_with_config(
+            "pnpm-test",
+            sandbox.path(),
+            HashMap::from_iter([map_config_environment(HostOS::Windows, HostArch::X64)]),
+        );
 
         assert_eq!(
             plugin
@@ -127,13 +120,11 @@ mod yarn {
     #[test]
     fn supports_prebuilt() {
         let sandbox = create_empty_sandbox();
-        let mut plugin = create_plugin("yarn-test", sandbox.path());
-
-        plugin.set_environment(HostEnvironment {
-            arch: HostArch::X64,
-            os: HostOS::MacOS,
-            ..Default::default()
-        });
+        let plugin = create_plugin_with_config(
+            "yarn-test",
+            sandbox.path(),
+            HashMap::from_iter([map_config_environment(HostOS::MacOS, HostArch::X64)]),
+        );
 
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -154,13 +145,11 @@ mod yarn {
     #[test]
     fn locates_default_bin() {
         let sandbox = create_empty_sandbox();
-        let mut plugin = create_plugin("yarn-test", sandbox.path());
-
-        plugin.set_environment(HostEnvironment {
-            arch: HostArch::X64,
-            os: HostOS::MacOS,
-            ..Default::default()
-        });
+        let plugin = create_plugin_with_config(
+            "yarn-test",
+            sandbox.path(),
+            HashMap::from_iter([map_config_environment(HostOS::MacOS, HostArch::X64)]),
+        );
 
         assert_eq!(
             plugin
@@ -186,13 +175,11 @@ mod yarn_berry {
     #[test]
     fn supports_prebuilt() {
         let sandbox = create_empty_sandbox();
-        let mut plugin = create_plugin("yarn-test", sandbox.path());
-
-        plugin.set_environment(HostEnvironment {
-            arch: HostArch::X64,
-            os: HostOS::MacOS,
-            ..Default::default()
-        });
+        let plugin = create_plugin_with_config(
+            "yarn-test",
+            sandbox.path(),
+            HashMap::from_iter([map_config_environment(HostOS::MacOS, HostArch::X64)]),
+        );
 
         assert_eq!(
             plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -214,13 +201,11 @@ mod yarn_berry {
     #[test]
     fn locates_default_bin() {
         let sandbox = create_empty_sandbox();
-        let mut plugin = create_plugin("yarn-test", sandbox.path());
-
-        plugin.set_environment(HostEnvironment {
-            arch: HostArch::X64,
-            os: HostOS::MacOS,
-            ..Default::default()
-        });
+        let plugin = create_plugin_with_config(
+            "yarn-test",
+            sandbox.path(),
+            HashMap::from_iter([map_config_environment(HostOS::MacOS, HostArch::X64)]),
+        );
 
         assert_eq!(
             plugin
