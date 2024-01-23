@@ -142,7 +142,7 @@ fn map_arch(os: HostOS, arch: HostArch) -> Result<String, PluginError> {
 pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
     check_supported_os_and_arch(
         NAME,
@@ -206,7 +206,7 @@ pub fn download_prebuilt(
 pub fn locate_executables(
     Json(_): Json<LocateExecutablesInput>,
 ) -> FnResult<Json<LocateExecutablesOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
     Ok(Json(LocateExecutablesOutput {
         globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
@@ -223,7 +223,7 @@ pub fn locate_executables(
 pub fn install_global(
     Json(input): Json<InstallGlobalInput>,
 ) -> FnResult<Json<InstallGlobalOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
     let result = exec_command!(commands::install_global(
         &input.dependency,
@@ -237,7 +237,7 @@ pub fn install_global(
 pub fn uninstall_global(
     Json(input): Json<UninstallGlobalInput>,
 ) -> FnResult<Json<UninstallGlobalOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
     let result = exec_command!(commands::uninstall_global(
         &input.dependency,

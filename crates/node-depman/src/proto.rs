@@ -322,7 +322,7 @@ pub fn locate_executables(
 pub fn install_global(
     Json(input): Json<InstallGlobalInput>,
 ) -> FnResult<Json<InstallGlobalOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
     let result = exec_command!(commands::install_global(
         &input.dependency,
@@ -336,7 +336,7 @@ pub fn install_global(
 pub fn uninstall_global(
     Json(input): Json<UninstallGlobalInput>,
 ) -> FnResult<Json<UninstallGlobalOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
     let result = exec_command!(commands::uninstall_global(
         &input.dependency,

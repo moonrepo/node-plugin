@@ -31,8 +31,7 @@ pub fn install_global(dependency: &str, globals_prefix: String) -> ExecCommandIn
         ],
     );
 
-    cmd.env_vars
-        .insert("PROTO_INSTALL_GLOBAL".into(), "true".into());
+    cmd.env.insert("PROTO_INSTALL_GLOBAL".into(), "true".into());
 
     cmd
 }
@@ -51,8 +50,7 @@ pub fn uninstall_global(dependency: &str, globals_prefix: String) -> ExecCommand
         ],
     );
 
-    cmd.env_vars
-        .insert("PROTO_INSTALL_GLOBAL".into(), "true".into());
+    cmd.env.insert("PROTO_INSTALL_GLOBAL".into(), "true".into());
 
     cmd
 }
