@@ -151,6 +151,8 @@ pub fn resolve_version(
             // When the alias "bundled" is provided, we should install the npm
             // version that comes bundled with the current Node.js version.
             if input.initial.is_alias("bundled") {
+                debug!("Received the bundled alias, attempting to find a version");
+
                 let response: Vec<NodeDistVersion> =
                     fetch_url("https://nodejs.org/download/release/index.json")?;
                 let mut found_version = false;
