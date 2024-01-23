@@ -55,7 +55,14 @@ mod hooks {
         #[should_panic(expected = "Global binaries must be installed")]
         fn errors_if_installing_global() {
             let sandbox = create_empty_sandbox();
-            let plugin = create_plugin("npm-test", sandbox.path());
+            let plugin = create_plugin_with_config(
+                "npm-test",
+                sandbox.path(),
+                HashMap::from_iter([(
+                    "proto_tool_config".into(),
+                    r#"{"intercept-globals":true}"#.to_owned(),
+                )]),
+            );
 
             plugin.pre_run(RunHook {
                 passthrough_args: vec!["install".into(), "-g".into(), "typescript".into()],
@@ -82,7 +89,14 @@ mod hooks {
         #[should_panic(expected = "Global binaries must be installed")]
         fn errors_if_installing_global() {
             let sandbox = create_empty_sandbox();
-            let plugin = create_plugin("pnpm-test", sandbox.path());
+            let plugin = create_plugin_with_config(
+                "pnpm-test",
+                sandbox.path(),
+                HashMap::from_iter([(
+                    "proto_tool_config".into(),
+                    r#"{"intercept-globals":true}"#.to_owned(),
+                )]),
+            );
 
             plugin.pre_run(RunHook {
                 passthrough_args: vec!["add".into(), "--global".into(), "typescript".into()],
@@ -109,7 +123,14 @@ mod hooks {
         #[should_panic(expected = "Global binaries must be installed")]
         fn errors_if_installing_global() {
             let sandbox = create_empty_sandbox();
-            let plugin = create_plugin("yarn-test", sandbox.path());
+            let plugin = create_plugin_with_config(
+                "yarn-test",
+                sandbox.path(),
+                HashMap::from_iter([(
+                    "proto_tool_config".into(),
+                    r#"{"intercept-globals":true}"#.to_owned(),
+                )]),
+            );
 
             plugin.pre_run(RunHook {
                 passthrough_args: vec!["global".into(), "add".into(), "typescript".into()],

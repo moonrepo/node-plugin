@@ -4,11 +4,11 @@ mod node_hooks {
     use proto_pdk::InstallHook;
     use proto_pdk_test_utils::{
         core::{ProtoConfig, VersionSpec},
-        create_plugin, ToolManifest, UnresolvedVersionSpec,
+        create_plugin_with_config, ToolManifest, UnresolvedVersionSpec,
     };
     use serial_test::serial;
     use starbase_sandbox::create_empty_sandbox;
-    use std::collections::HashSet;
+    use std::collections::{HashMap, HashSet};
     use std::env;
     use std::path::PathBuf;
 
@@ -26,7 +26,14 @@ mod node_hooks {
     #[serial]
     fn installs_bundled_npm() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("node-test", sandbox.path());
+        let plugin = create_plugin_with_config(
+            "node-test",
+            sandbox.path(),
+            HashMap::from_iter([(
+                "proto_tool_config".into(),
+                r#"{"bundled-npm":true}"#.to_owned(),
+            )]),
+        );
 
         assert!(!sandbox.path().join(".proto/tools/npm/8.6.0").exists());
 
@@ -58,7 +65,14 @@ mod node_hooks {
     #[serial]
     fn can_pin_bundled_npm() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("node-test", sandbox.path());
+        let plugin = create_plugin_with_config(
+            "node-test",
+            sandbox.path(),
+            HashMap::from_iter([(
+                "proto_tool_config".into(),
+                r#"{"bundled-npm":true}"#.to_owned(),
+            )]),
+        );
 
         set_vars(sandbox.path().join(".proto"));
 
@@ -81,7 +95,14 @@ mod node_hooks {
     #[serial]
     fn can_skip_bundled_npm() {
         let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("node-test", sandbox.path());
+        let plugin = create_plugin_with_config(
+            "node-test",
+            sandbox.path(),
+            HashMap::from_iter([(
+                "proto_tool_config".into(),
+                r#"{"bundled-npm":true}"#.to_owned(),
+            )]),
+        );
 
         assert!(!sandbox.path().join(".proto/tools/npm/8.6.0").exists());
 

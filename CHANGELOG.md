@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.9.0
+
+#### 💥 Breaking
+
+- Changed the `bundled-npm` and `intercept-globals` settings to be `false` by default (instead of `true`).
+
+#### 🚀 Updates
+
+- Updated to support proto v0.29 release.
+
 ## 0.8.0
 
 #### 💥 Breaking

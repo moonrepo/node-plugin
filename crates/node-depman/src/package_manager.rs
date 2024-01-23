@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use extism_pdk::Error;
-use proto_pdk::{get_tool_id, UnresolvedVersionSpec};
+use proto_pdk::{get_plugin_id, UnresolvedVersionSpec};
 use std::fmt;
 
 #[derive(PartialEq)]
@@ -13,7 +13,7 @@ pub enum PackageManager {
 
 impl PackageManager {
     pub fn detect() -> Result<PackageManager, Error> {
-        let id = get_tool_id()?;
+        let id = get_plugin_id()?;
 
         Ok(if id.to_lowercase().contains("yarn") {
             PackageManager::Yarn

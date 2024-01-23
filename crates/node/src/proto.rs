@@ -8,7 +8,6 @@ use proto_pdk::*;
 #[host_fn]
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
-    fn host_log(input: Json<HostLogInput>);
 }
 
 static NAME: &str = "Node.js";
@@ -142,7 +141,7 @@ fn map_arch(os: HostOS, arch: HostArch) -> Result<String, PluginError> {
 pub fn download_prebuilt(
     Json(input): Json<DownloadPrebuiltInput>,
 ) -> FnResult<Json<DownloadPrebuiltOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
     check_supported_os_and_arch(
         NAME,
@@ -206,7 +205,7 @@ pub fn download_prebuilt(
 pub fn locate_executables(
     Json(_): Json<LocateExecutablesInput>,
 ) -> FnResult<Json<LocateExecutablesOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
     Ok(Json(LocateExecutablesOutput {
         globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
@@ -223,12 +222,15 @@ pub fn locate_executables(
 pub fn install_global(
     Json(input): Json<InstallGlobalInput>,
 ) -> FnResult<Json<InstallGlobalOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
-    let result = exec_command!(commands::install_global(
-        &input.dependency,
-        get_global_prefix(&env, &input.globals_dir),
-    ));
+    let result = exec_command!(
+        input,
+        commands::install_global(
+            &input.dependency,
+            get_global_prefix(&env, &input.globals_dir),
+        )
+    );
 
     Ok(Json(InstallGlobalOutput::from_exec_command(result)))
 }
@@ -237,12 +239,15 @@ pub fn install_global(
 pub fn uninstall_global(
     Json(input): Json<UninstallGlobalInput>,
 ) -> FnResult<Json<UninstallGlobalOutput>> {
-    let env = get_proto_environment()?;
+    let env = get_host_environment()?;
 
-    let result = exec_command!(commands::uninstall_global(
-        &input.dependency,
-        get_global_prefix(&env, &input.globals_dir),
-    ));
+    let result = exec_command!(
+        input,
+        commands::uninstall_global(
+            &input.dependency,
+            get_global_prefix(&env, &input.globals_dir),
+        )
+    );
 
     Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
 }
@@ -260,7 +265,7 @@ pub fn post_install(Json(input): Json<InstallHook>) -> FnResult<()> {
         return Ok(());
     }
 
-    host_log!("Installing npm that comes bundled with Node.js");
+    debug!("Installing npm that comes bundled with Node.js");
 
     let mut args = vec!["install", "npm", "bundled"];
 
