@@ -12,7 +12,6 @@ use std::collections::HashMap;
 extern "ExtismHost" {
     fn exec_command(input: Json<ExecCommandInput>) -> Json<ExecCommandOutput>;
     fn get_env_var(key: &str) -> String;
-    fn host_log(input: Json<HostLogInput>);
 }
 
 #[plugin_fn]
@@ -186,7 +185,7 @@ pub fn resolve_version(
                 }
 
                 if !found_version {
-                    host_log!(
+                    debug!(
                         "Could not find a bundled npm version for Node.js, falling back to latest"
                     );
 
@@ -233,10 +232,9 @@ pub fn download_prebuilt(
     let manager = PackageManager::detect()?;
 
     if version.is_canary() {
-        return err!(PluginError::UnsupportedCanary {
+        return Err(plugin_err!(PluginError::UnsupportedCanary {
             tool: manager.to_string()
-        }
-        .into());
+        }));
     }
 
     let package_name = manager.get_package_name(version.to_unresolved_spec());
@@ -324,10 +322,13 @@ pub fn install_global(
 ) -> FnResult<Json<InstallGlobalOutput>> {
     let env = get_host_environment()?;
 
-    let result = exec_command!(commands::install_global(
-        &input.dependency,
-        get_global_prefix(&env, &input.globals_dir),
-    ));
+    let result = exec_command!(
+        input,
+        commands::install_global(
+            &input.dependency,
+            get_global_prefix(&env, &input.globals_dir),
+        )
+    );
 
     Ok(Json(InstallGlobalOutput::from_exec_command(result)))
 }
@@ -338,10 +339,13 @@ pub fn uninstall_global(
 ) -> FnResult<Json<UninstallGlobalOutput>> {
     let env = get_host_environment()?;
 
-    let result = exec_command!(commands::uninstall_global(
-        &input.dependency,
-        get_global_prefix(&env, &input.globals_dir),
-    ));
+    let result = exec_command!(
+        input,
+        commands::uninstall_global(
+            &input.dependency,
+            get_global_prefix(&env, &input.globals_dir),
+        )
+    );
 
     Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
 }
@@ -379,12 +383,12 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
     }
 
     if is_install_command && is_global {
-        return err!(
-            "Global binaries must be installed with `proto install-global {}`!\nLearn more: {}\n\nOpt-out of this functionality with `{}`.",
+        return Err(plugin_err!(
+            "Global binaries must be installed with <shell>proto install-global {}</shell>!\nLearn more: <url>{}</url>\n\nOpt-out of this functionality with <property>{}</property>.",
             manager.to_string(),
             "https://github.com/moonrepo/node-plugin#configuration",
             "tools.node.intercept-globals = false",
-        );
+        ));
     }
 
     Ok(())
