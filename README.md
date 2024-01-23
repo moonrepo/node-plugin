@@ -21,20 +21,19 @@ npm|pnpm|yarn = "source:https://github.com/moonrepo/node-plugin/releases/downloa
 
 All plugins can be configured with a `.prototools` file.
 
-- `bundled-npm` (bool) - When `node` is installed, also install `npm` with the version of npm that came bundled with Node.js. Defaults to `true`.
-- `intercept-globals` (bool) - When npm, pnpm, or yarn attempt to install a global package, intercept the call and fail with an error message encouraging the use of `proto install-global` instead. Defaults to `true`.
+- `bundled-npm` (bool) - When `node` is installed, also install `npm` with the version of npm that came bundled with Node.js. Defaults to `false`.
+- `intercept-globals` (bool) - When npm, pnpm, or yarn attempt to install a global package, intercept the call and fail with an error message encouraging the use of `proto install-global` instead. Defaults to `false`.
 
 ```toml
 [tools.node]
-bundled-npm = false
+bundled-npm = true
 ```
 
 ## Hooks
 
 ### Post-install
 
-After installation, the version of npm that came bundled with Node.js will also be installed. This
-functionality can be skipped by passing `--no-bundled-npm` during installation, or setting the `bundled-npm` configuration to `false`.
+After installation and `bundled-npm = true`, the version of npm that came bundled with Node.js will also be installed. This functionality can be skipped by passing `--no-bundled-npm` during installation.
 
 ```shell
 proto install node -- --no-bundled-npm
