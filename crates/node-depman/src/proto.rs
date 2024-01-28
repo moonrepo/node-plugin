@@ -76,6 +76,19 @@ pub fn parse_version_file(
                     }
                 }
             }
+
+            if version.is_none() {
+                if let Some(volta) = package_json.volta {
+                    if let Some(volta_tool_version) = match manager_name.as_str() {
+                        "npm" => volta.npm,
+                        "pnpm" => volta.pnpm,
+                        "yarn" => volta.yarn,
+                        _ => None,
+                    } {
+                        version = Some(UnresolvedVersionSpec::parse(volta_tool_version)?);
+                    }
+                }
+            }
         }
     }
 

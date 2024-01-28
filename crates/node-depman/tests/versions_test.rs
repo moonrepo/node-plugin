@@ -87,6 +87,22 @@ mod npm {
             }
         );
     }
+
+    #[test]
+    fn parses_volta() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("npm-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "volta": { "npm": "1.2.3" } }"#.into(),
+                file: "package.json".into(),
+            }),
+            ParseVersionFileOutput {
+                version: Some(UnresolvedVersionSpec::parse("1.2.3").unwrap()),
+            }
+        );
+    }
 }
 
 mod pnpm {
@@ -152,6 +168,22 @@ mod pnpm {
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
                 content: r#"{ "engines": { "pnpm": "1.2.3" } }"#.into(),
+                file: "package.json".into(),
+            }),
+            ParseVersionFileOutput {
+                version: Some(UnresolvedVersionSpec::parse("1.2.3").unwrap()),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_volta() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("pnpm-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "volta": { "pnpm": "1.2.3" } }"#.into(),
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {
@@ -225,6 +257,22 @@ mod yarn {
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
                 content: r#"{ "engines": { "yarn": "1.2.3" } }"#.into(),
+                file: "package.json".into(),
+            }),
+            ParseVersionFileOutput {
+                version: Some(UnresolvedVersionSpec::parse("1.2.3").unwrap()),
+            }
+        );
+    }
+
+    #[test]
+    fn parses_volta() {
+        let sandbox = create_empty_sandbox();
+        let plugin = create_plugin("yarn-test", sandbox.path());
+
+        assert_eq!(
+            plugin.parse_version_file(ParseVersionFileInput {
+                content: r#"{ "volta": { "yarn": "1.2.3" } }"#.into(),
                 file: "package.json".into(),
             }),
             ParseVersionFileOutput {

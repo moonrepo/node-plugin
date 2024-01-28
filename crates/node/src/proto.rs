@@ -48,6 +48,14 @@ pub fn parse_version_file(
                     version = Some(UnresolvedVersionSpec::parse(constraint)?);
                 }
             }
+
+            if version.is_none() {
+                if let Some(volta) = package_json.volta {
+                    if let Some(volta_node_version) = volta.node {
+                        version = Some(UnresolvedVersionSpec::parse(volta_node_version)?);
+                    }
+                }
+            }
         }
     } else {
         version = Some(UnresolvedVersionSpec::parse(input.content)?);
