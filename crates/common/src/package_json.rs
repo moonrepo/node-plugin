@@ -9,6 +9,14 @@ pub enum BinField {
 }
 
 #[derive(Debug, Deserialize)]
+pub struct VoltaField {
+    pub node: Option<String>,
+    pub npm: Option<String>,
+    pub pnpm: Option<String>,
+    pub yarn: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
 pub struct PackageJson {
     pub bin: Option<BinField>,
 
@@ -22,4 +30,6 @@ pub struct PackageJson {
     pub package_manager: Option<String>,
 
     pub version: Option<String>,
+
+    pub volta: Option<VoltaField>,
 }

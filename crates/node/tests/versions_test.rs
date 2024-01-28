@@ -65,3 +65,19 @@ fn parses_engines() {
         }
     );
 }
+
+#[test]
+fn parses_volta() {
+    let sandbox = create_empty_sandbox();
+    let plugin = create_plugin("node-test", sandbox.path());
+
+    assert_eq!(
+        plugin.parse_version_file(ParseVersionFileInput {
+            content: r#"{ "volta": { "node": "16.20.2" } }"#.into(),
+            file: "package.json".into(),
+        }),
+        ParseVersionFileOutput {
+            version: Some(UnresolvedVersionSpec::parse("16.20.2").unwrap()),
+        }
+    );
+}
