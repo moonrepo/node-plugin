@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.1
+
+#### 🚀 Updates
+
+- Added version detection support for `volta` in `package.json`.
+
 ## 0.9.0
 
 #### 💥 Breaking
