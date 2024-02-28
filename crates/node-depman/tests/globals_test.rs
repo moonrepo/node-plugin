@@ -2,6 +2,7 @@
 
 use proto_pdk_test_utils::*;
 
+#[cfg(not(windows))]
 mod npm {
     use super::*;
 
