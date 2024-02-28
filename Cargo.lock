@@ -1797,7 +1797,7 @@ dependencies = [
 
 [[package]]
 name = "node_depman_plugin"
-version = "0.9.1"
+version = "0.10.0"
 dependencies = [
  "extism-pdk",
  "node_common",
@@ -1812,7 +1812,7 @@ dependencies = [
 
 [[package]]
 name = "node_plugin"
-version = "0.9.1"
+version = "0.10.0"
 dependencies = [
  "extism-pdk",
  "node_common",

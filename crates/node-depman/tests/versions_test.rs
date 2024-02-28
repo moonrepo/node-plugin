@@ -109,7 +109,7 @@ mod pnpm {
     use super::*;
 
     generate_resolve_versions_tests!("pnpm-test", {
-        "7" => "7.33.6",
+        "7" => "7.33.7",
         "8.1" => "8.1.1",
         "dev" => "6.23.7-202112041634",
     });
@@ -199,8 +199,8 @@ mod yarn {
     generate_resolve_versions_tests!("yarn-test", {
         "1" => "1.22.21",
         "2" => "2.4.3",
-        "3" => "3.7.0",
-        "berry" => "4.0.2",
+        "3" => "3.8.0",
+        "berry" => "4.1.0",
     });
 
     #[test]
