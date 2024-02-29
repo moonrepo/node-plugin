@@ -2,6 +2,11 @@
 
 ## 0.10.0
 
+#### 💥 Breaking
+
+- Removed `install_global`, use `npm/pnpm/yarn` instead.
+- Removed `uninstall_global`, use `npm/pnpm/yarn` instead.
+
 #### 🚀 Updates
 
 - Updated to support proto v0.31 release.
