@@ -270,15 +270,20 @@ pub fn download_prebuilt(
 pub fn locate_executables(
     Json(_): Json<LocateExecutablesInput>,
 ) -> FnResult<Json<LocateExecutablesOutput>> {
+    let env = get_host_environment()?;
     let manager = PackageManager::detect()?;
     let mut secondary = HashMap::default();
     let mut primary;
+
+    // These are the directories that contain the executable binaries,
+    // NOT where the packages/node modules are stored. Some package managers
+    // have separate folders for the 2 processes, and then create symlinks.
+    let mut globals_lookup_dirs = vec!["$PREFIX/bin".into()];
 
     // We don't link binaries for package managers for the following reasons:
     // 1 - We can't link JS files because they aren't executable.
     // 2 - We can't link the bash/cmd wrappers, as they expect the files to exist
     //     relative from the node install directory, which they do not.
-
     match &manager {
         PackageManager::Npm => {
             primary = ExecutableConfig::with_parent("bin/npm-cli.js", "node");
@@ -296,6 +301,15 @@ pub fn locate_executables(
             node_gyp.no_bin = true;
 
             secondary.insert("node-gyp".into(), node_gyp);
+
+            // https://docs.npmjs.com/cli/v9/configuring-npm/folders#prefix-configuration
+            // https://github.com/npm/cli/blob/latest/lib/npm.js
+            // https://github.com/npm/cli/blob/latest/workspaces/config/lib/index.js#L339
+            globals_lookup_dirs.push("$TOOL_DIR/bin".into());
+
+            if env.os != HostOS::Windows {
+                globals_lookup_dirs.push("/usr/local/bin".into());
+            }
         }
         PackageManager::Pnpm => {
             primary = ExecutableConfig::with_parent("bin/pnpm.cjs", "node");
@@ -310,6 +324,15 @@ pub fn locate_executables(
                     ..ExecutableConfig::default()
                 },
             );
+
+            // https://pnpm.io/npmrc#global-dir
+            if env.os == HostOS::Windows {
+                globals_lookup_dirs.push("$LOCALAPPDATA\\pnpm\\global".into());
+            } else if env.os == HostOS::MacOS {
+                globals_lookup_dirs.push("$HOME/Library/pnpm/global".into());
+            } else {
+                globals_lookup_dirs.push("$HOME/.local/share/pnpm/global".into());
+            }
         }
         PackageManager::Yarn => {
             primary = ExecutableConfig::with_parent("bin/yarn.js", "node");
@@ -317,12 +340,27 @@ pub fn locate_executables(
 
             // yarnpkg
             secondary.insert("yarnpkg".into(), primary.clone());
+
+            // https://github.com/yarnpkg/yarn/blob/master/src/cli/commands/global.js#L84
+            if env.os == HostOS::Windows {
+                globals_lookup_dirs.push("$LOCALAPPDATA\\Yarn\\bin".into());
+                globals_lookup_dirs.push("$HOME\\.yarn\\bin".into());
+            } else {
+                globals_lookup_dirs.push("/usr/local/bin".into());
+                globals_lookup_dirs.push("$HOME/.yarn/bin".into());
+            }
         }
     };
 
+    let config = get_tool_config::<PluginConfig>()?;
+
+    if config.shared_globals_dir {
+        globals_lookup_dirs.clear();
+        globals_lookup_dirs.push("$PROTO_HOME/tools/node/globals/bin".into());
+    }
+
     Ok(Json(LocateExecutablesOutput {
-        // TODO
-        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
+        globals_lookup_dirs,
         primary: Some(primary),
         secondary,
         ..LocateExecutablesOutput::default()
@@ -374,15 +412,16 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
                 "unlink",
             ];
 
-            if aliases.contains(&args[0].as_str())
+            if aliases.iter().any(|alias| *alias == args[0])
                 && args
                     .iter()
                     .any(|arg| arg == "--global" || arg == "-g" || arg == "--location=global")
                 && args.iter().all(|arg| arg != "--prefix")
             {
-                let new_args = result.args.get_or_insert(vec![]);
-                new_args.push("--prefix".into());
-                new_args.push(globals_dir.clone());
+                result
+                    .env
+                    .get_or_insert(HashMap::default())
+                    .insert("PREFIX".into(), globals_dir);
             }
         }
 
@@ -392,7 +431,7 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
                 "add", "update", "remove", "list", "outdated", "why", "root", "bin",
             ];
 
-            if aliases.contains(&args[0].as_str())
+            if aliases.iter().any(|alias| *alias == args[0])
                 && args.iter().any(|arg| arg == "--global" || arg == "-g")
                 && args.iter().all(|arg| arg != "--global-dir")
             {
@@ -407,12 +446,13 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
             let aliases = ["add", "bin", "list", "remove", "upgrade"];
 
             if args[0] == "global"
-                && aliases.contains(&args[1].as_str())
+                && aliases.iter().any(|alias| *alias == args[1])
                 && args.iter().all(|arg| arg != "--prefix")
             {
-                let new_args = result.args.get_or_insert(vec![]);
-                new_args.push("--prefix".into());
-                new_args.push(globals_dir.clone());
+                result
+                    .env
+                    .get_or_insert(HashMap::default())
+                    .insert("PREFIX".into(), globals_dir);
             }
         }
     };
