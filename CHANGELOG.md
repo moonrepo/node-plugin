@@ -10,6 +10,7 @@
 
 #### 🚀 Updates
 
+- Added a new `shared-globals-dir` setting, which injects args/env vars into npm/pnpm/yarn commands when they attemp to install global packages.
 - Updated to support proto v0.31 release.
 - Updated dependencies.
 

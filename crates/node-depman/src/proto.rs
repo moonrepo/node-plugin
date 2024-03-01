@@ -306,10 +306,6 @@ pub fn locate_executables(
             // https://github.com/npm/cli/blob/latest/lib/npm.js
             // https://github.com/npm/cli/blob/latest/workspaces/config/lib/index.js#L339
             globals_lookup_dirs.push("$TOOL_DIR/bin".into());
-
-            if env.os != HostOS::Windows {
-                globals_lookup_dirs.push("/usr/local/bin".into());
-            }
         }
         PackageManager::Pnpm => {
             primary = ExecutableConfig::with_parent("bin/pnpm.cjs", "node");
@@ -326,12 +322,16 @@ pub fn locate_executables(
             );
 
             // https://pnpm.io/npmrc#global-dir
+            // https://github.com/pnpm/pnpm/blob/main/config/config/src/index.ts#L350
+            // https://github.com/pnpm/pnpm/blob/main/config/config/src/dirs.ts#L40
+            globals_lookup_dirs.push("$PNPM_HOME".into());
+
             if env.os == HostOS::Windows {
-                globals_lookup_dirs.push("$LOCALAPPDATA\\pnpm\\global".into());
+                globals_lookup_dirs.push("$LOCALAPPDATA\\pnpm".into());
             } else if env.os == HostOS::MacOS {
-                globals_lookup_dirs.push("$HOME/Library/pnpm/global".into());
+                globals_lookup_dirs.push("$HOME/Library/pnpm".into());
             } else {
-                globals_lookup_dirs.push("$HOME/.local/share/pnpm/global".into());
+                globals_lookup_dirs.push("$HOME/.local/share/pnpm".into());
             }
         }
         PackageManager::Yarn => {
@@ -346,7 +346,6 @@ pub fn locate_executables(
                 globals_lookup_dirs.push("$LOCALAPPDATA\\Yarn\\bin".into());
                 globals_lookup_dirs.push("$HOME\\.yarn\\bin".into());
             } else {
-                globals_lookup_dirs.push("/usr/local/bin".into());
                 globals_lookup_dirs.push("$HOME/.yarn/bin".into());
             }
         }
@@ -384,7 +383,22 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
 
     let env = get_host_environment()?;
     let manager = PackageManager::detect()?;
-    let globals_dir = manager.get_globals_dir_prefix(&env, globals_dir);
+
+    // Where binaries are symlinked... see `locate_executables` above.
+    let globals_bin_dir = globals_dir.real_path().unwrap();
+
+    // Where the packages are installed to. On Windows, globals will be
+    // installed into the bin directory directly.
+    let globals_install_dir = if env.os.is_windows() {
+        globals_bin_dir.to_string_lossy()
+    }
+    // On Unix, globals are installed a directory higher, while they're
+    // binaries are symlinked to ./bin. So we must remove the trailing
+    // /bin for everything to resolve correctly.
+    else {
+        globals_bin_dir.parent().unwrap().to_string_lossy()
+    }
+    .to_string();
 
     match manager {
         // npm install|add|etc -g <dep>
@@ -421,7 +435,7 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
                 result
                     .env
                     .get_or_insert(HashMap::default())
-                    .insert("PREFIX".into(), globals_dir);
+                    .insert("PREFIX".into(), globals_install_dir);
             }
         }
 
@@ -435,9 +449,13 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
                 && args.iter().any(|arg| arg == "--global" || arg == "-g")
                 && args.iter().all(|arg| arg != "--global-dir")
             {
+                // These arguments aren't ideal, but pnpm doesn't support
+                // environment variables from what I've seen...
                 let new_args = result.args.get_or_insert(vec![]);
                 new_args.push("--global-dir".into());
-                new_args.push(globals_dir.clone());
+                new_args.push(globals_install_dir);
+                new_args.push("--global-bin-dir".into());
+                new_args.push(globals_bin_dir.to_string_lossy().to_string());
             }
         }
 
@@ -452,7 +470,7 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
                 result
                     .env
                     .get_or_insert(HashMap::default())
-                    .insert("PREFIX".into(), globals_dir);
+                    .insert("PREFIX".into(), globals_install_dir);
             }
         }
     };
