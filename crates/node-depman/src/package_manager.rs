@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use extism_pdk::Error;
-use proto_pdk::{get_plugin_id, UnresolvedVersionSpec};
+use proto_pdk::{get_plugin_id, HostEnvironment, UnresolvedVersionSpec, VirtualPath};
 use std::fmt;
 
 #[derive(PartialEq)]
@@ -50,6 +50,29 @@ impl PackageManager {
                 UnresolvedVersionSpec::Req(req) => req.comparators.iter().any(|c| c.major > 1),
                 _ => false,
             }
+    }
+
+    pub fn get_globals_dir_prefix(
+        &self,
+        env: &HostEnvironment,
+        globals_dir: &VirtualPath,
+    ) -> String {
+        let prefix = globals_dir
+            .real_path()
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
+
+        // On Windows, globals will be installed into the prefix as-is,
+        // so binaries will exist in the root of the prefix.
+        if env.os.is_windows() {
+            return prefix;
+        }
+
+        // On Unix, globals are nested within a /bin directory, and since our
+        // fixed globals dir ends in /bin, we must remove it and set the prefix
+        // to the parent directory. This way everything resolves correctly.
+        prefix.replace("/bin", "")
     }
 }
 

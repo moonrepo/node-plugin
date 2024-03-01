@@ -1,4 +1,3 @@
-pub mod commands;
 mod config;
 mod node_dist;
 mod package_json;

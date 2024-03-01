@@ -6,6 +6,7 @@
 
 - Removed `install_global`, use `npm/pnpm/yarn` instead.
 - Removed `uninstall_global`, use `npm/pnpm/yarn` instead.
+- Removed the `intercept-globals` config setting.
 
 #### 🚀 Updates
 

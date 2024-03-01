@@ -321,6 +321,7 @@ pub fn locate_executables(
     };
 
     Ok(Json(LocateExecutablesOutput {
+        // TODO
         globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
         primary: Some(primary),
         secondary,
@@ -329,45 +330,92 @@ pub fn locate_executables(
 }
 
 #[plugin_fn]
-pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
+pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
+    let mut result = RunHookResult::default();
+
+    let Some(globals_dir) = &input.globals_dir else {
+        return Ok(Json(result));
+    };
+
     let args = &input.passthrough_args;
     let config = get_tool_config::<PluginConfig>()?;
 
-    if args.len() < 3 || !config.intercept_globals || host_env!("PROTO_INSTALL_GLOBAL").is_some() {
-        return Ok(());
+    if args.len() < 3 || !config.shared_globals_dir {
+        return Ok(Json(result));
     }
 
+    let env = get_host_environment()?;
     let manager = PackageManager::detect()?;
-    let mut is_install_command = false;
-    let mut is_global = false;
+    let globals_dir = manager.get_globals_dir_prefix(&env, globals_dir);
 
-    // npm install -g <dep>
-    // pnpm add -g <dep>
-    if manager == PackageManager::Npm || manager == PackageManager::Pnpm {
-        is_install_command = args[0] == "install" || args[0] == "i" || args[0] == "add";
+    match manager {
+        // npm install|add|etc -g <dep>
+        PackageManager::Npm => {
+            let aliases = vec![
+                // install
+                "add",
+                "i",
+                "in",
+                "ins",
+                "inst",
+                "insta",
+                "instal",
+                "install",
+                "isnt",
+                "isnta",
+                "isntal",
+                "isntall",
+                // uninstall
+                "r",
+                "remove",
+                "rm",
+                "un",
+                "uninstall",
+                "unlink",
+            ];
 
-        for arg in args {
-            if arg == "--global" || arg == "-g" || arg == "--location=global" {
-                is_global = true;
-                break;
+            if aliases.contains(&args[0].as_str())
+                && args
+                    .iter()
+                    .any(|arg| arg == "--global" || arg == "-g" || arg == "--location=global")
+                && args.iter().all(|arg| arg != "--prefix")
+            {
+                let new_args = result.args.get_or_insert(vec![]);
+                new_args.push("--prefix".into());
+                new_args.push(globals_dir.clone());
             }
         }
-    }
 
-    // yarn global add <dep>
-    if manager == PackageManager::Yarn {
-        is_global = args[0] == "global";
-        is_install_command = args[1] == "add";
-    }
+        // pnpm add|update|etc -g <dep>
+        PackageManager::Pnpm => {
+            let aliases = [
+                "add", "update", "remove", "list", "outdated", "why", "root", "bin",
+            ];
 
-    if is_install_command && is_global {
-        return Err(plugin_err!(
-            "Global binaries must be installed with <shell>proto install-global {}</shell>!\nLearn more: <url>{}</url>\n\nOpt-out of this functionality with <property>{}</property>.",
-            manager.to_string(),
-            "https://github.com/moonrepo/node-plugin#configuration",
-            "tools.node.intercept-globals = false",
-        ));
-    }
+            if aliases.contains(&args[0].as_str())
+                && args.iter().any(|arg| arg == "--global" || arg == "-g")
+                && args.iter().all(|arg| arg != "--global-dir")
+            {
+                let new_args = result.args.get_or_insert(vec![]);
+                new_args.push("--global-dir".into());
+                new_args.push(globals_dir.clone());
+            }
+        }
 
-    Ok(())
+        // yarn global add|remove|etc <dep>
+        PackageManager::Yarn => {
+            let aliases = ["add", "bin", "list", "remove", "upgrade"];
+
+            if args[0] == "global"
+                && aliases.contains(&args[1].as_str())
+                && args.iter().all(|arg| arg != "--prefix")
+            {
+                let new_args = result.args.get_or_insert(vec![]);
+                new_args.push("--prefix".into());
+                new_args.push(globals_dir.clone());
+            }
+        }
+    };
+
+    Ok(Json(result))
 }

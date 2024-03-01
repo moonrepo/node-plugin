@@ -4,9 +4,9 @@ members = ["crates/*"]
 
 [workspace.dependencies]
 extism-pdk = { version = "1.1.0" }
-proto_pdk = { version = "0.17.1" } #, path = "../../proto/crates/pdk" }
-proto_pdk_api = { version = "0.17.0" } #, path = "../../proto/crates/pdk-api" }
-proto_pdk_test_utils = { version = "0.19.1" } #, path = "../../proto/crates/pdk-test-utils" }
+proto_pdk = { version = "0.17.2" } #, path = "../../proto/crates/pdk" }
+proto_pdk_api = { version = "0.17.1" } #, path = "../../proto/crates/pdk-api" }
+proto_pdk_test_utils = { version = "0.19.2" } #, path = "../../proto/crates/pdk-test-utils" }
 regex = { version = "1.10.3", default-features = false, features = [
 	"std",
 	"unicode",
