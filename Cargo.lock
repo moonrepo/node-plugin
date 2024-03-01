@@ -1802,6 +1802,7 @@ dependencies = [
  "extism-pdk",
  "node_common",
  "proto_pdk",
+ "proto_pdk_api",
  "proto_pdk_test_utils",
  "regex",
  "serde",
@@ -2149,9 +2150,9 @@ dependencies = [
 
 [[package]]
 name = "proto_pdk_test_utils"
-version = "0.19.2"
+version = "0.19.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6ffc6c64b6c1f7144eb8d2db64e1cc153a909075054c5339b11292edf2c629a9"
+checksum = "bdea1655c095642442b94e2f6a5a39c9458b728f5c3109df8b3360ee79dc8bd8"
 dependencies = [
  "extism",
  "proto_core",

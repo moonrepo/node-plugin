@@ -22,7 +22,7 @@ npm|pnpm|yarn = "source:https://github.com/moonrepo/node-plugin/releases/downloa
 All plugins can be configured with a `.prototools` file.
 
 - `bundled-npm` (bool) - When `node` is installed, also install `npm` with the version of npm that came bundled with Node.js. Defaults to `false`.
-- `shared-globals-dir` (bool) - Installs npm, pnpm, or yarn global packages to a shared location: `~/.proto/tools/node/globals`. Defaults to `false`.
+- `shared-globals-dir` (bool) - EXPERIMENTAL: Global npm, pnpm, or yarn packages are installed to a shared location: `~/.proto/tools/node/globals`. Defaults to `false`.
 
 ```toml
 [tools.node]

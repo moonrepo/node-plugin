@@ -447,7 +447,9 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
 
             if aliases.iter().any(|alias| *alias == args[0])
                 && args.iter().any(|arg| arg == "--global" || arg == "-g")
-                && args.iter().all(|arg| arg != "--global-dir")
+                && args
+                    .iter()
+                    .all(|arg| arg != "--global-dir" && arg != "--global-bin-dir")
             {
                 // These arguments aren't ideal, but pnpm doesn't support
                 // environment variables from what I've seen...
