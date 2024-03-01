@@ -1,10 +1,7 @@
 use crate::npm_registry::parse_registry_response;
 use crate::package_manager::PackageManager;
 use extism_pdk::*;
-use node_common::{
-    commands::{self, get_global_prefix},
-    NodeDistVersion, PackageJson, PluginConfig,
-};
+use node_common::{NodeDistVersion, PackageJson, PluginConfig};
 use proto_pdk::*;
 use std::collections::HashMap;
 
@@ -273,15 +270,20 @@ pub fn download_prebuilt(
 pub fn locate_executables(
     Json(_): Json<LocateExecutablesInput>,
 ) -> FnResult<Json<LocateExecutablesOutput>> {
+    let env = get_host_environment()?;
     let manager = PackageManager::detect()?;
     let mut secondary = HashMap::default();
     let mut primary;
+
+    // These are the directories that contain the executable binaries,
+    // NOT where the packages/node modules are stored. Some package managers
+    // have separate folders for the 2 processes, and then create symlinks.
+    let mut globals_lookup_dirs = vec!["$PREFIX/bin".into()];
 
     // We don't link binaries for package managers for the following reasons:
     // 1 - We can't link JS files because they aren't executable.
     // 2 - We can't link the bash/cmd wrappers, as they expect the files to exist
     //     relative from the node install directory, which they do not.
-
     match &manager {
         PackageManager::Npm => {
             primary = ExecutableConfig::with_parent("bin/npm-cli.js", "node");
@@ -299,6 +301,11 @@ pub fn locate_executables(
             node_gyp.no_bin = true;
 
             secondary.insert("node-gyp".into(), node_gyp);
+
+            // https://docs.npmjs.com/cli/v9/configuring-npm/folders#prefix-configuration
+            // https://github.com/npm/cli/blob/latest/lib/npm.js
+            // https://github.com/npm/cli/blob/latest/workspaces/config/lib/index.js#L339
+            globals_lookup_dirs.push("$TOOL_DIR/bin".into());
         }
         PackageManager::Pnpm => {
             primary = ExecutableConfig::with_parent("bin/pnpm.cjs", "node");
@@ -313,6 +320,19 @@ pub fn locate_executables(
                     ..ExecutableConfig::default()
                 },
             );
+
+            // https://pnpm.io/npmrc#global-dir
+            // https://github.com/pnpm/pnpm/blob/main/config/config/src/index.ts#L350
+            // https://github.com/pnpm/pnpm/blob/main/config/config/src/dirs.ts#L40
+            globals_lookup_dirs.push("$PNPM_HOME".into());
+
+            if env.os == HostOS::Windows {
+                globals_lookup_dirs.push("$LOCALAPPDATA\\pnpm".into());
+            } else if env.os == HostOS::MacOS {
+                globals_lookup_dirs.push("$HOME/Library/pnpm".into());
+            } else {
+                globals_lookup_dirs.push("$HOME/.local/share/pnpm".into());
+            }
         }
         PackageManager::Yarn => {
             primary = ExecutableConfig::with_parent("bin/yarn.js", "node");
@@ -320,11 +340,26 @@ pub fn locate_executables(
 
             // yarnpkg
             secondary.insert("yarnpkg".into(), primary.clone());
+
+            // https://github.com/yarnpkg/yarn/blob/master/src/cli/commands/global.js#L84
+            if env.os == HostOS::Windows {
+                globals_lookup_dirs.push("$LOCALAPPDATA\\Yarn\\bin".into());
+                globals_lookup_dirs.push("$HOME\\.yarn\\bin".into());
+            } else {
+                globals_lookup_dirs.push("$HOME/.yarn/bin".into());
+            }
         }
     };
 
+    let config = get_tool_config::<PluginConfig>()?;
+
+    if config.shared_globals_dir {
+        globals_lookup_dirs.clear();
+        globals_lookup_dirs.push("$PROTO_HOME/tools/node/globals/bin".into());
+    }
+
     Ok(Json(LocateExecutablesOutput {
-        globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
+        globals_lookup_dirs,
         primary: Some(primary),
         secondary,
         ..LocateExecutablesOutput::default()
@@ -332,79 +367,125 @@ pub fn locate_executables(
 }
 
 #[plugin_fn]
-pub fn install_global(
-    Json(input): Json<InstallGlobalInput>,
-) -> FnResult<Json<InstallGlobalOutput>> {
-    let env = get_host_environment()?;
+pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
+    let mut result = RunHookResult::default();
 
-    let result = exec_command!(
-        input,
-        commands::install_global(
-            &input.dependency,
-            get_global_prefix(&env, &input.globals_dir),
-        )
-    );
+    let Some(globals_dir) = &input.globals_dir else {
+        return Ok(Json(result));
+    };
 
-    Ok(Json(InstallGlobalOutput::from_exec_command(result)))
-}
-
-#[plugin_fn]
-pub fn uninstall_global(
-    Json(input): Json<UninstallGlobalInput>,
-) -> FnResult<Json<UninstallGlobalOutput>> {
-    let env = get_host_environment()?;
-
-    let result = exec_command!(
-        input,
-        commands::uninstall_global(
-            &input.dependency,
-            get_global_prefix(&env, &input.globals_dir),
-        )
-    );
-
-    Ok(Json(UninstallGlobalOutput::from_exec_command(result)))
-}
-
-#[plugin_fn]
-pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<()> {
     let args = &input.passthrough_args;
     let config = get_tool_config::<PluginConfig>()?;
 
-    if args.len() < 3 || !config.intercept_globals || host_env!("PROTO_INSTALL_GLOBAL").is_some() {
-        return Ok(());
+    if args.len() < 3 || !config.shared_globals_dir {
+        return Ok(Json(result));
     }
 
+    let env = get_host_environment()?;
     let manager = PackageManager::detect()?;
-    let mut is_install_command = false;
-    let mut is_global = false;
 
-    // npm install -g <dep>
-    // pnpm add -g <dep>
-    if manager == PackageManager::Npm || manager == PackageManager::Pnpm {
-        is_install_command = args[0] == "install" || args[0] == "i" || args[0] == "add";
+    // Includes trailing /bin folder
+    let globals_bin_dir = globals_dir
+        .real_path()
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+    // Parent directory, doesn't include /bin folder
+    let globals_root_dir = globals_dir
+        .real_path()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
 
-        for arg in args {
-            if arg == "--global" || arg == "-g" || arg == "--location=global" {
-                is_global = true;
-                break;
+    match manager {
+        // npm install|add|etc -g <dep>
+        PackageManager::Npm => {
+            let aliases = vec![
+                // install
+                "add",
+                "i",
+                "in",
+                "ins",
+                "inst",
+                "insta",
+                "instal",
+                "install",
+                "isnt",
+                "isnta",
+                "isntal",
+                "isntall",
+                // uninstall
+                "r",
+                "remove",
+                "rm",
+                "un",
+                "uninstall",
+                "unlink",
+            ];
+
+            if aliases.iter().any(|alias| *alias == args[0])
+                && args
+                    .iter()
+                    .any(|arg| arg == "--global" || arg == "-g" || arg == "--location=global")
+                && args.iter().all(|arg| arg != "--prefix")
+            {
+                result
+                    .env
+                    .get_or_insert(HashMap::default())
+                    // Unix will create a /bin directory when installing into the root,
+                    // while Windows installs directly into the /bin directory.
+                    .insert(
+                        "PREFIX".into(),
+                        if env.os == HostOS::Windows {
+                            globals_bin_dir
+                        } else {
+                            globals_root_dir
+                        },
+                    );
             }
         }
-    }
 
-    // yarn global add <dep>
-    if manager == PackageManager::Yarn {
-        is_global = args[0] == "global";
-        is_install_command = args[1] == "add";
-    }
+        // pnpm add|update|etc -g <dep>
+        PackageManager::Pnpm => {
+            let aliases = [
+                "add", "update", "remove", "list", "outdated", "why", "root", "bin",
+            ];
 
-    if is_install_command && is_global {
-        return Err(plugin_err!(
-            "Global binaries must be installed with <shell>proto install-global {}</shell>!\nLearn more: <url>{}</url>\n\nOpt-out of this functionality with <property>{}</property>.",
-            manager.to_string(),
-            "https://github.com/moonrepo/node-plugin#configuration",
-            "tools.node.intercept-globals = false",
-        ));
-    }
+            if aliases.iter().any(|alias| *alias == args[0])
+                && args.iter().any(|arg| arg == "--global" || arg == "-g")
+                && args
+                    .iter()
+                    .all(|arg| arg != "--global-dir" && arg != "--global-bin-dir")
+            {
+                // These arguments aren't ideal, but pnpm doesn't support
+                // environment variables from what I've seen...
+                let new_args = result.args.get_or_insert(vec![]);
+                new_args.push("--global-dir".into());
+                new_args.push(globals_root_dir);
+                new_args.push("--global-bin-dir".into());
+                new_args.push(globals_bin_dir);
+            }
+        }
 
-    Ok(())
+        // yarn global add|remove|etc <dep>
+        PackageManager::Yarn => {
+            let aliases = ["add", "bin", "list", "remove", "upgrade"];
+
+            if args[0] == "global"
+                && aliases.iter().any(|alias| *alias == args[1])
+                && args.iter().all(|arg| arg != "--prefix")
+            {
+                result
+                    .env
+                    .get_or_insert(HashMap::default())
+                    // Both Unix and Windows will create a /bin directory,
+                    // when installing into the root.
+                    .insert("PREFIX".into(), globals_root_dir);
+            }
+        }
+    };
+
+    Ok(Json(result))
 }

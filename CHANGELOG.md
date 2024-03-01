@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.10.0
+
+#### 💥 Breaking
+
+- Removed `install_global`, use `npm/pnpm/yarn` instead.
+- Removed `uninstall_global`, use `npm/pnpm/yarn` instead.
+- Removed the `intercept-globals` config setting.
+
+#### 🚀 Updates
+
+- Added a new `shared-globals-dir` setting, which injects args/env vars into npm/pnpm/yarn commands when they attemp to install global packages.
+- Updated to support proto v0.31 release.
+- Updated dependencies.
+
 ## 0.9.1
 
 #### 🚀 Updates
