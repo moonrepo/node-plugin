@@ -387,11 +387,7 @@ mod pre_run {
                 result.env,
                 Some(HashMap::from_iter([(
                     "PREFIX".into(),
-                    if cfg!(windows) {
-                        "/.proto/tools/node/globals/bin".into()
-                    } else {
-                        "/.proto/tools/node/globals".into()
-                    }
+                    "/.proto/tools/node/globals".into()
                 )]))
             );
         }

@@ -384,21 +384,20 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
     let env = get_host_environment()?;
     let manager = PackageManager::detect()?;
 
-    // Where binaries are symlinked... see `locate_executables` above.
-    let globals_bin_dir = globals_dir.real_path().unwrap();
-
-    // Where the packages are installed to. On Windows, globals will be
-    // installed into the bin directory directly.
-    let globals_install_dir = if env.os.is_windows() {
-        globals_bin_dir.to_string_lossy()
-    }
-    // On Unix, globals are installed a directory higher, while they're
-    // binaries are symlinked to ./bin. So we must remove the trailing
-    // /bin for everything to resolve correctly.
-    else {
-        globals_bin_dir.parent().unwrap().to_string_lossy()
-    }
-    .to_string();
+    // Includes trailing /bin folder
+    let globals_bin_dir = globals_dir
+        .real_path()
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
+    // Parent directory, doesn't include /bin folder
+    let globals_root_dir = globals_dir
+        .real_path()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .to_string_lossy()
+        .to_string();
 
     match manager {
         // npm install|add|etc -g <dep>
@@ -435,7 +434,16 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
                 result
                     .env
                     .get_or_insert(HashMap::default())
-                    .insert("PREFIX".into(), globals_install_dir);
+                    // Unix will create a /bin directory when installing into the root,
+                    // while Windows installs directly into the /bin directory.
+                    .insert(
+                        "PREFIX".into(),
+                        if env.os == HostOS::Windows {
+                            globals_bin_dir
+                        } else {
+                            globals_root_dir
+                        },
+                    );
             }
         }
 
@@ -455,9 +463,9 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
                 // environment variables from what I've seen...
                 let new_args = result.args.get_or_insert(vec![]);
                 new_args.push("--global-dir".into());
-                new_args.push(globals_install_dir);
+                new_args.push(globals_root_dir);
                 new_args.push("--global-bin-dir".into());
-                new_args.push(globals_bin_dir.to_string_lossy().to_string());
+                new_args.push(globals_bin_dir);
             }
         }
 
@@ -472,7 +480,9 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
                 result
                     .env
                     .get_or_insert(HashMap::default())
-                    .insert("PREFIX".into(), globals_install_dir);
+                    // Both Unix and Windows will create a /bin directory,
+                    // when installing into the root.
+                    .insert("PREFIX".into(), globals_root_dir);
             }
         }
     };
