@@ -44,6 +44,8 @@ proto install node -- --no-bundled-npm
 
 Before a npm/pnpm/yarn command is ran and `shared-globals-dir` is enabled, this hook will modify the arguments or environment variables of the command when installing a global package.
 
+npm and yarn will set the `PREFIX` environment variable, while pnpm will set `--global-dir` and `--global-bin-dir` arguments.
+
 ## Contributing
 
 Build the plugins:
