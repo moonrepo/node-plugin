@@ -42,7 +42,7 @@ shared-globals-dir = true
 # [tools.yarn]
 ```
 
-> To execute the shared globals, you'll need to add `~/.proto/tools/node/globals` to `PATH` in your shell.
+> To execute the shared globals, you'll need to add `~/.proto/tools/node/globals/bin` to `PATH` in your shell.
 
 ## Hooks
 
