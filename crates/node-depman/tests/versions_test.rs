@@ -196,10 +196,10 @@ mod yarn {
     use super::*;
 
     generate_resolve_versions_tests!("yarn-test", {
-        "1" => "1.22.21",
+        "1" => "1.22.22",
         "2" => "2.4.3",
-        "3" => "3.8.0",
-        "berry" => "4.1.0",
+        "3" => "3.8.1",
+        "berry" => "4.1.1",
     });
 
     #[test]
