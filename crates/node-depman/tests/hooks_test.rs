@@ -1,6 +1,6 @@
+use node_common::PluginConfig;
 use proto_pdk_api::RunHook;
 use proto_pdk_test_utils::*;
-use starbase_sandbox::create_empty_sandbox;
 use std::collections::HashMap;
 use std::path::PathBuf;
 
@@ -20,8 +20,8 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_not_configured() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin("npm-test", sandbox.path());
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin("npm-test");
 
             let result = plugin.pre_run(RunHook::default());
 
@@ -31,15 +31,13 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_disabled() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "npm-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":false}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("npm-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: false,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook::default());
 
@@ -49,15 +47,13 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_enabled_but_no_args() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "npm-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":true}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("npm-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: true,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook {
                 globals_dir: Some(create_globals_dir()),
@@ -70,15 +66,13 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_a_prefix_was_provided() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "npm-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":true}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("npm-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: true,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook {
                 globals_dir: Some(create_globals_dir()),
@@ -98,15 +92,13 @@ mod pre_run {
 
         #[test]
         fn adds_env_var() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "npm-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":true}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("npm-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: true,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook {
                 globals_dir: Some(create_globals_dir()),
@@ -130,15 +122,13 @@ mod pre_run {
 
         #[test]
         fn adds_env_var_with_aliases() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "npm-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":true}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("npm-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: true,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook {
                 globals_dir: Some(create_globals_dir()),
@@ -155,8 +145,8 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_not_configured() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin("pnpm-test", sandbox.path());
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin("pnpm-test");
 
             let result = plugin.pre_run(RunHook::default());
 
@@ -166,15 +156,13 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_disabled() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "pnpm-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":false}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("pnpm-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: false,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook::default());
 
@@ -184,15 +172,13 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_enabled_but_no_args() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "pnpm-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":true}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("pnpm-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: true,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook {
                 globals_dir: Some(create_globals_dir()),
@@ -205,15 +191,13 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_a_dir_was_provided() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "pnpm-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":true}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("pnpm-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: true,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook {
                 globals_dir: Some(create_globals_dir()),
@@ -233,15 +217,13 @@ mod pre_run {
 
         #[test]
         fn adds_args() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "pnpm-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":true}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("pnpm-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: true,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook {
                 globals_dir: Some(create_globals_dir()),
@@ -263,15 +245,13 @@ mod pre_run {
 
         #[test]
         fn adds_args_with_aliases() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "pnpm-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":true}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("pnpm-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: true,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook {
                 globals_dir: Some(create_globals_dir()),
@@ -288,8 +268,8 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_not_configured() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin("yarn-test", sandbox.path());
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin("yarn-test");
 
             let result = plugin.pre_run(RunHook::default());
 
@@ -299,15 +279,13 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_disabled() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "yarn-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":false}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("yarn-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: false,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook::default());
 
@@ -317,15 +295,13 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_enabled_but_no_args() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "yarn-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":true}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("yarn-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: true,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook {
                 globals_dir: Some(create_globals_dir()),
@@ -338,15 +314,13 @@ mod pre_run {
 
         #[test]
         fn does_nothing_if_a_prefix_was_provided() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "yarn-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":true}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("yarn-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: true,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook {
                 globals_dir: Some(create_globals_dir()),
@@ -366,15 +340,13 @@ mod pre_run {
 
         #[test]
         fn adds_env_var() {
-            let sandbox = create_empty_sandbox();
-            let plugin = create_plugin_with_config(
-                "yarn-test",
-                sandbox.path(),
-                HashMap::from_iter([(
-                    "proto_tool_config".into(),
-                    r#"{"shared-globals-dir":true}"#.to_owned(),
-                )]),
-            );
+            let sandbox = create_empty_proto_sandbox();
+            let plugin = sandbox.create_plugin_with_config("yarn-test", |config| {
+                config.tool_config(PluginConfig {
+                    shared_globals_dir: true,
+                    ..Default::default()
+                });
+            });
 
             let result = plugin.pre_run(RunHook {
                 globals_dir: Some(create_globals_dir()),

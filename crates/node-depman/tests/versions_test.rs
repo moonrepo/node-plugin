@@ -1,5 +1,4 @@
 use proto_pdk_test_utils::*;
-use starbase_sandbox::create_empty_sandbox;
 
 mod npm {
     use super::*;
@@ -12,8 +11,8 @@ mod npm {
 
     #[test]
     fn doesnt_parse_package_manager_if_diff_name() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("npm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("npm-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -26,8 +25,8 @@ mod npm {
 
     #[test]
     fn parses_package_manager() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("npm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("npm-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -42,8 +41,8 @@ mod npm {
 
     #[test]
     fn parses_package_manager_with_hash() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("npm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("npm-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -58,8 +57,8 @@ mod npm {
 
     #[test]
     fn parses_package_manager_latest() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("npm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("npm-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -74,8 +73,8 @@ mod npm {
 
     #[test]
     fn parses_engines() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("npm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("npm-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -90,8 +89,8 @@ mod npm {
 
     #[test]
     fn parses_volta() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("npm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("npm-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -116,8 +115,8 @@ mod pnpm {
 
     #[test]
     fn doesnt_parse_package_manager_if_diff_name() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("pnpm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("pnpm-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -130,8 +129,8 @@ mod pnpm {
 
     #[test]
     fn parses_package_manager() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("pnpm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("pnpm-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -146,8 +145,8 @@ mod pnpm {
 
     #[test]
     fn parses_package_manager_latest() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("pnpm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("pnpm-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -162,8 +161,8 @@ mod pnpm {
 
     #[test]
     fn parses_engines() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("pnpm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("pnpm-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -178,8 +177,8 @@ mod pnpm {
 
     #[test]
     fn parses_volta() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("pnpm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("pnpm-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -205,8 +204,8 @@ mod yarn {
 
     #[test]
     fn doesnt_parse_package_manager_if_diff_name() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("yarn-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -219,8 +218,8 @@ mod yarn {
 
     #[test]
     fn parses_package_manager() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("yarn-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -235,8 +234,8 @@ mod yarn {
 
     #[test]
     fn parses_package_manager_latest() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("yarn-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -251,8 +250,8 @@ mod yarn {
 
     #[test]
     fn parses_engines() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("yarn-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {
@@ -267,8 +266,8 @@ mod yarn {
 
     #[test]
     fn parses_volta() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("yarn-test");
 
         assert_eq!(
             plugin.parse_version_file(ParseVersionFileInput {

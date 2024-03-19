@@ -1,6 +1,4 @@
 use proto_pdk_test_utils::*;
-use starbase_sandbox::create_empty_sandbox;
-use std::collections::HashMap;
 
 generate_download_install_tests!("node-test", "18.0.0");
 
@@ -14,12 +12,10 @@ mod canary {
 
 #[test]
 fn supports_linux_arm64() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "node-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Linux, HostArch::Arm64)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+        config.host(HostOS::Linux, HostArch::Arm64);
+    });
 
     assert_eq!(
         plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -42,12 +38,10 @@ fn supports_linux_arm64() {
 
 #[test]
 fn supports_linux_arm() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "node-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Linux, HostArch::Arm)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+        config.host(HostOS::Linux, HostArch::Arm);
+    });
 
     assert_eq!(
         plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -71,12 +65,10 @@ fn supports_linux_arm() {
 
 #[test]
 fn supports_linux_x64() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "node-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Linux, HostArch::X64)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+        config.host(HostOS::Linux, HostArch::X64);
+    });
 
     assert_eq!(
         plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -99,12 +91,10 @@ fn supports_linux_x64() {
 
 #[test]
 fn supports_linux_s390x() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "node-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Linux, HostArch::S390x)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+        config.host(HostOS::Linux, HostArch::S390x);
+    });
 
     assert_eq!(
         plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -127,12 +117,10 @@ fn supports_linux_s390x() {
 
 #[test]
 fn supports_linux_ppc64() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "node-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Linux, HostArch::Powerpc64)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+        config.host(HostOS::Linux, HostArch::Powerpc64);
+    });
 
     assert_eq!(
         plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -156,12 +144,10 @@ fn supports_linux_ppc64() {
 
 #[test]
 fn supports_macos_arm64() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "node-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::MacOS, HostArch::Arm64)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+        config.host(HostOS::MacOS, HostArch::Arm64);
+    });
 
     assert_eq!(
         plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -185,12 +171,10 @@ fn supports_macos_arm64() {
 
 #[test]
 fn supports_macos_x64() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "node-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::MacOS, HostArch::X64)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+        config.host(HostOS::MacOS, HostArch::X64);
+    });
 
     assert_eq!(
         plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -213,12 +197,10 @@ fn supports_macos_x64() {
 
 #[test]
 fn supports_windows_arm64() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "node-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Windows, HostArch::Arm64)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+        config.host(HostOS::Windows, HostArch::Arm64);
+    });
 
     assert_eq!(
         plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -241,12 +223,10 @@ fn supports_windows_arm64() {
 
 #[test]
 fn supports_windows_x64() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "node-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Windows, HostArch::X64)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+        config.host(HostOS::Windows, HostArch::X64);
+    });
 
     assert_eq!(
         plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -269,12 +249,10 @@ fn supports_windows_x64() {
 
 #[test]
 fn supports_windows_x86() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "node-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Windows, HostArch::X86)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+        config.host(HostOS::Windows, HostArch::X86);
+    });
 
     assert_eq!(
         plugin.download_prebuilt(DownloadPrebuiltInput {
@@ -297,12 +275,10 @@ fn supports_windows_x86() {
 
 #[test]
 fn locates_unix_bin() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "bun-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Linux, HostArch::Arm64)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("bun-test", |config| {
+        config.host(HostOS::Linux, HostArch::Arm64);
+    });
 
     assert_eq!(
         plugin
@@ -321,12 +297,10 @@ fn locates_unix_bin() {
 
 #[test]
 fn locates_windows_bin() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin_with_config(
-        "bun-test",
-        sandbox.path(),
-        HashMap::from_iter([map_config_environment(HostOS::Windows, HostArch::X64)]),
-    );
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin_with_config("bun-test", |config| {
+        config.host(HostOS::Windows, HostArch::X64);
+    });
 
     assert_eq!(
         plugin
