@@ -1,7 +1,8 @@
 use crate::npm_registry::parse_registry_response;
 use crate::package_manager::PackageManager;
 use extism_pdk::*;
-use node_common::{NodeDistVersion, PackageJson, PluginConfig};
+use node_common::{NodeDistVersion, PluginConfig, VoltaField};
+use nodejs_package_json::PackageJson;
 use proto_pdk::*;
 use std::collections::HashMap;
 
@@ -43,7 +44,7 @@ pub fn parse_version_file(
     let mut version = None;
 
     if input.file == "package.json" {
-        if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
+        if let Ok(mut package_json) = json::from_str::<PackageJson>(&input.content) {
             let manager_name = PackageManager::detect()?.to_string();
 
             if let Some(pm) = package_json.package_manager {
@@ -75,7 +76,9 @@ pub fn parse_version_file(
             }
 
             if version.is_none() {
-                if let Some(volta) = package_json.volta {
+                if let Some(volta_raw) = package_json.other_fields.remove("volta") {
+                    let volta: VoltaField = json::from_value(volta_raw)?;
+
                     if let Some(volta_tool_version) = match manager_name.as_str() {
                         "npm" => volta.npm,
                         "pnpm" => volta.pnpm,

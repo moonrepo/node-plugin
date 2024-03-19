@@ -1,5 +1,6 @@
 use extism_pdk::*;
-use node_common::{NodeDistLTS, NodeDistVersion, PackageJson, PluginConfig};
+use node_common::{NodeDistLTS, NodeDistVersion, PluginConfig, VoltaField};
+use nodejs_package_json::PackageJson;
 use proto_pdk::*;
 
 #[host_fn]
@@ -39,7 +40,7 @@ pub fn parse_version_file(
     let mut version = None;
 
     if input.file == "package.json" {
-        if let Ok(package_json) = json::from_str::<PackageJson>(&input.content) {
+        if let Ok(mut package_json) = json::from_str::<PackageJson>(&input.content) {
             if let Some(engines) = package_json.engines {
                 if let Some(constraint) = engines.get(BIN) {
                     version = Some(UnresolvedVersionSpec::parse(constraint)?);
@@ -47,7 +48,9 @@ pub fn parse_version_file(
             }
 
             if version.is_none() {
-                if let Some(volta) = package_json.volta {
+                if let Some(volta_raw) = package_json.other_fields.remove("volta") {
+                    let volta: VoltaField = json::from_value(volta_raw)?;
+
                     if let Some(volta_node_version) = volta.node {
                         version = Some(UnresolvedVersionSpec::parse(volta_node_version)?);
                     }

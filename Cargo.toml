@@ -4,6 +4,7 @@ members = ["crates/*"]
 
 [workspace.dependencies]
 extism-pdk = { version = "1.1.0" }
+nodejs_package_json = "0.2.0"
 proto_pdk = { version = "0.17.5" } #, path = "../../proto/crates/pdk" }
 proto_pdk_api = { version = "0.17.3" } #, path = "../../proto/crates/pdk-api" }
 proto_pdk_test_utils = { version = "0.20.1" } #, path = "../../proto/crates/pdk-test-utils" }
