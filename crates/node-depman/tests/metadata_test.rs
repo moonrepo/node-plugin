@@ -1,5 +1,4 @@
 use proto_pdk_test_utils::*;
-use starbase_sandbox::create_empty_sandbox;
 
 fn create_metadata(id: &str) -> ToolMetadataInput {
     ToolMetadataInput { id: id.into() }
@@ -10,8 +9,8 @@ mod npm {
 
     #[test]
     fn registers_metadata() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("npm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("npm-test");
 
         assert_eq!(
             plugin.register_tool(create_metadata("npm-test")),
@@ -31,8 +30,8 @@ mod pnpm {
 
     #[test]
     fn registers_metadata() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("pnpm-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("pnpm-test");
 
         assert_eq!(
             plugin.register_tool(create_metadata("pnpm-test")),
@@ -51,8 +50,8 @@ mod yarn {
 
     #[test]
     fn registers_metadata() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin("yarn-test", sandbox.path());
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin("yarn-test");
 
         assert_eq!(
             plugin.register_tool(create_metadata("yarn-test")),

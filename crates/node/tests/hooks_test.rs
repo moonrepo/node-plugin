@@ -1,14 +1,11 @@
 // Importing proto_pdk crashes Windows because it contains WASM code
 #[cfg(not(windows))]
 mod node_hooks {
+    use node_common::PluginConfig;
     use proto_pdk::InstallHook;
-    use proto_pdk_test_utils::{
-        core::{ProtoConfig, VersionSpec},
-        create_plugin_with_config, ToolManifest, UnresolvedVersionSpec,
-    };
+    use proto_pdk_test_utils::*;
     use serial_test::serial;
-    use starbase_sandbox::create_empty_sandbox;
-    use std::collections::{HashMap, HashSet};
+    use std::collections::HashSet;
     use std::env;
     use std::path::PathBuf;
 
@@ -25,15 +22,13 @@ mod node_hooks {
     #[test]
     #[serial]
     fn installs_bundled_npm() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin_with_config(
-            "node-test",
-            sandbox.path(),
-            HashMap::from_iter([(
-                "proto_tool_config".into(),
-                r#"{"bundled-npm":true}"#.to_owned(),
-            )]),
-        );
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+            config.tool_config(PluginConfig {
+                bundled_npm: true,
+                ..Default::default()
+            });
+        });
 
         assert!(!sandbox.path().join(".proto/tools/npm/8.6.0").exists());
 
@@ -64,15 +59,13 @@ mod node_hooks {
     #[test]
     #[serial]
     fn can_pin_bundled_npm() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin_with_config(
-            "node-test",
-            sandbox.path(),
-            HashMap::from_iter([(
-                "proto_tool_config".into(),
-                r#"{"bundled-npm":true}"#.to_owned(),
-            )]),
-        );
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+            config.tool_config(PluginConfig {
+                bundled_npm: true,
+                ..Default::default()
+            });
+        });
 
         set_vars(sandbox.path().join(".proto"));
 
@@ -94,15 +87,13 @@ mod node_hooks {
     #[test]
     #[serial]
     fn can_skip_bundled_npm() {
-        let sandbox = create_empty_sandbox();
-        let plugin = create_plugin_with_config(
-            "node-test",
-            sandbox.path(),
-            HashMap::from_iter([(
-                "proto_tool_config".into(),
-                r#"{"bundled-npm":true}"#.to_owned(),
-            )]),
-        );
+        let sandbox = create_empty_proto_sandbox();
+        let plugin = sandbox.create_plugin_with_config("node-test", |config| {
+            config.tool_config(PluginConfig {
+                bundled_npm: true,
+                ..Default::default()
+            });
+        });
 
         assert!(!sandbox.path().join(".proto/tools/npm/8.6.0").exists());
 

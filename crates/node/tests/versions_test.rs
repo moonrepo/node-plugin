@@ -1,5 +1,4 @@
 use proto_pdk_test_utils::*;
-use starbase_sandbox::create_empty_sandbox;
 
 generate_resolve_versions_tests!("node-test", {
     "8" => "8.17.0",
@@ -7,13 +6,13 @@ generate_resolve_versions_tests!("node-test", {
     "lts-gallium" => "16.20.2",
     "lts/fermium" => "14.21.3",
     "stable" => "20.11.1",
-    "node" => "21.6.2",
+    "node" => "21.7.1",
 });
 
 #[test]
 fn loads_versions_from_dist_url() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("node-test", sandbox.path());
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("node-test");
 
     let output = plugin.load_versions(LoadVersionsInput::default());
 
@@ -22,8 +21,8 @@ fn loads_versions_from_dist_url() {
 
 #[test]
 fn sets_latest_alias() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("node-test", sandbox.path());
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("node-test");
 
     let output = plugin.load_versions(LoadVersionsInput::default());
 
@@ -34,8 +33,8 @@ fn sets_latest_alias() {
 
 #[test]
 fn sets_lts_aliases() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("node-test", sandbox.path());
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("node-test");
 
     let output = plugin.load_versions(LoadVersionsInput::default());
     let mut aliases = output.aliases.keys().collect::<Vec<_>>();
@@ -52,8 +51,8 @@ fn sets_lts_aliases() {
 
 #[test]
 fn parses_engines() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("node-test", sandbox.path());
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("node-test");
 
     assert_eq!(
         plugin.parse_version_file(ParseVersionFileInput {
@@ -68,8 +67,8 @@ fn parses_engines() {
 
 #[test]
 fn parses_volta() {
-    let sandbox = create_empty_sandbox();
-    let plugin = create_plugin("node-test", sandbox.path());
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("node-test");
 
     assert_eq!(
         plugin.parse_version_file(ParseVersionFileInput {
