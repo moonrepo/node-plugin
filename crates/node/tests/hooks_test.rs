@@ -1,7 +1,7 @@
 // Importing proto_pdk crashes Windows because it contains WASM code
 #[cfg(not(windows))]
 mod node_hooks {
-    use node_common::PluginConfig;
+    use node_common::NodePluginConfig;
     use proto_pdk::InstallHook;
     use proto_pdk_test_utils::*;
     use serial_test::serial;
@@ -24,7 +24,7 @@ mod node_hooks {
     fn installs_bundled_npm() {
         let sandbox = create_empty_proto_sandbox();
         let plugin = sandbox.create_plugin_with_config("node-test", |config| {
-            config.tool_config(PluginConfig {
+            config.tool_config(NodePluginConfig {
                 bundled_npm: true,
                 ..Default::default()
             });
@@ -61,7 +61,7 @@ mod node_hooks {
     fn can_pin_bundled_npm() {
         let sandbox = create_empty_proto_sandbox();
         let plugin = sandbox.create_plugin_with_config("node-test", |config| {
-            config.tool_config(PluginConfig {
+            config.tool_config(NodePluginConfig {
                 bundled_npm: true,
                 ..Default::default()
             });
@@ -89,7 +89,7 @@ mod node_hooks {
     fn can_skip_bundled_npm() {
         let sandbox = create_empty_proto_sandbox();
         let plugin = sandbox.create_plugin_with_config("node-test", |config| {
-            config.tool_config(PluginConfig {
+            config.tool_config(NodePluginConfig {
                 bundled_npm: true,
                 ..Default::default()
             });

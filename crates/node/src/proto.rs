@@ -1,5 +1,5 @@
 use extism_pdk::*;
-use node_common::{NodeDistLTS, NodeDistVersion, PluginConfig, VoltaField};
+use node_common::{NodeDistLTS, NodeDistVersion, NodePluginConfig, VoltaField};
 use nodejs_package_json::PackageJson;
 use proto_pdk::*;
 
@@ -163,14 +163,14 @@ pub fn download_prebuilt(
 
     let arch = map_arch(env.os, env.arch)?;
     let mut version = input.context.version;
-    let mut host = "https://nodejs.org/download/release".to_owned();
+    let mut host = get_tool_config::<NodePluginConfig>()?.dist_url;
 
     // When canary, extract the latest version from the index
     if version.is_canary() {
         let response: Vec<NodeDistVersion> =
             fetch_url("https://nodejs.org/download/nightly/index.json")?;
 
-        host = "https://nodejs.org/download/nightly".into();
+        host = host.replace("/release/", "/nightly/");
         version = VersionSpec::parse(&response[0].version)?;
     }
 
@@ -202,9 +202,14 @@ pub fn download_prebuilt(
 
     Ok(Json(DownloadPrebuiltOutput {
         archive_prefix: Some(prefix),
-        download_url: format!("{host}/v{version}/{filename}"),
+        download_url: host
+            .replace("{version}", &version.to_string())
+            .replace("{file}", &filename),
         download_name: Some(filename),
-        checksum_url: Some(format!("{host}/v{version}/SHASUMS256.txt")),
+        checksum_url: Some(
+            host.replace("{version}", &version.to_string())
+                .replace("{file}", "SHASUMS256.txt"),
+        ),
         ..DownloadPrebuiltOutput::default()
     }))
 }
@@ -228,7 +233,7 @@ pub fn locate_executables(
 
 #[plugin_fn]
 pub fn post_install(Json(input): Json<InstallHook>) -> FnResult<()> {
-    let config = get_tool_config::<PluginConfig>()?;
+    let config = get_tool_config::<NodePluginConfig>()?;
 
     if !config.bundled_npm
         || input

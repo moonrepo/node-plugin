@@ -1,4 +1,4 @@
-use node_common::PluginConfig;
+use node_common::NodeDepmanPluginConfig;
 use proto_pdk_api::RunHook;
 use proto_pdk_test_utils::*;
 use std::collections::HashMap;
@@ -33,9 +33,8 @@ mod pre_run {
         fn does_nothing_if_disabled() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("npm-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: false,
-                    ..Default::default()
                 });
             });
 
@@ -49,9 +48,8 @@ mod pre_run {
         fn does_nothing_if_enabled_but_no_args() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("npm-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: true,
-                    ..Default::default()
                 });
             });
 
@@ -68,9 +66,8 @@ mod pre_run {
         fn does_nothing_if_a_prefix_was_provided() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("npm-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: true,
-                    ..Default::default()
                 });
             });
 
@@ -94,9 +91,8 @@ mod pre_run {
         fn adds_env_var() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("npm-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: true,
-                    ..Default::default()
                 });
             });
 
@@ -124,9 +120,8 @@ mod pre_run {
         fn adds_env_var_with_aliases() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("npm-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: true,
-                    ..Default::default()
                 });
             });
 
@@ -158,9 +153,8 @@ mod pre_run {
         fn does_nothing_if_disabled() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("pnpm-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: false,
-                    ..Default::default()
                 });
             });
 
@@ -174,9 +168,8 @@ mod pre_run {
         fn does_nothing_if_enabled_but_no_args() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("pnpm-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: true,
-                    ..Default::default()
                 });
             });
 
@@ -193,9 +186,8 @@ mod pre_run {
         fn does_nothing_if_a_dir_was_provided() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("pnpm-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: true,
-                    ..Default::default()
                 });
             });
 
@@ -219,9 +211,8 @@ mod pre_run {
         fn adds_args() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("pnpm-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: true,
-                    ..Default::default()
                 });
             });
 
@@ -247,9 +238,8 @@ mod pre_run {
         fn adds_args_with_aliases() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("pnpm-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: true,
-                    ..Default::default()
                 });
             });
 
@@ -281,9 +271,8 @@ mod pre_run {
         fn does_nothing_if_disabled() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("yarn-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: false,
-                    ..Default::default()
                 });
             });
 
@@ -297,9 +286,8 @@ mod pre_run {
         fn does_nothing_if_enabled_but_no_args() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("yarn-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: true,
-                    ..Default::default()
                 });
             });
 
@@ -316,9 +304,8 @@ mod pre_run {
         fn does_nothing_if_a_prefix_was_provided() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("yarn-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: true,
-                    ..Default::default()
                 });
             });
 
@@ -342,9 +329,8 @@ mod pre_run {
         fn adds_env_var() {
             let sandbox = create_empty_proto_sandbox();
             let plugin = sandbox.create_plugin_with_config("yarn-test", |config| {
-                config.tool_config(PluginConfig {
+                config.tool_config(NodeDepmanPluginConfig {
                     shared_globals_dir: true,
-                    ..Default::default()
                 });
             });
 
