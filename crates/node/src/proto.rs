@@ -58,7 +58,16 @@ pub fn parse_version_file(
             }
         }
     } else {
-        version = Some(UnresolvedVersionSpec::parse(input.content)?);
+        for line in input.content.lines() {
+            let line = line.trim();
+
+            if line.is_empty() || line.starts_with('#') {
+                continue;
+            } else {
+                version = Some(UnresolvedVersionSpec::parse(line)?);
+                break;
+            }
+        }
     }
 
     Ok(Json(ParseVersionFileOutput { version }))
