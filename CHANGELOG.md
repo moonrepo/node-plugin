@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.2
+
+#### 🚀 Updates
+
+- Added a `dist-url` config setting, allowing the download host to be customized.
+
 ## 0.10.1
 
 #### 🚀 Updates

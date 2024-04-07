@@ -24,10 +24,12 @@ All plugins can be configured with a `.prototools` file.
 ### Node.js
 
 - `bundled-npm` (bool) - When `node` is installed, also install `npm` with the version of npm that came bundled with Node.js. Defaults to `false`.
+- `dist-url` (string) - The distribution URL to download Node.js archives from. Supports `{version}` and `{file}` tokens.
 
 ```toml
 [tools.node]
 bundled-npm = true
+dist-url = "https://..."
 ```
 
 ### Package managers

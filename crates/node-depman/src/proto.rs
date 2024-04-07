@@ -1,7 +1,7 @@
 use crate::npm_registry::parse_registry_response;
 use crate::package_manager::PackageManager;
 use extism_pdk::*;
-use node_common::{NodeDistVersion, PluginConfig, VoltaField};
+use node_common::{NodeDepmanPluginConfig, NodeDistVersion, VoltaField};
 use nodejs_package_json::PackageJson;
 use proto_pdk::*;
 use std::collections::HashMap;
@@ -354,7 +354,7 @@ pub fn locate_executables(
         }
     };
 
-    let config = get_tool_config::<PluginConfig>()?;
+    let config = get_tool_config::<NodeDepmanPluginConfig>()?;
 
     if config.shared_globals_dir {
         globals_lookup_dirs.clear();
@@ -378,7 +378,7 @@ pub fn pre_run(Json(input): Json<RunHook>) -> FnResult<Json<RunHookResult>> {
     };
 
     let args = &input.passthrough_args;
-    let config = get_tool_config::<PluginConfig>()?;
+    let config = get_tool_config::<NodeDepmanPluginConfig>()?;
 
     if args.len() < 3 || !config.shared_globals_dir {
         return Ok(Json(result));
