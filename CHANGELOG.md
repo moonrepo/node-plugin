@@ -6,6 +6,10 @@
 
 - Added a `dist-url` config setting, allowing the download host to be customized.
 
+#### 🐞 Fixes
+
+- Fixed `.nvmrc` and `.node-version` parsing when they contain comments.
+
 ## 0.10.1
 
 #### 🚀 Updates

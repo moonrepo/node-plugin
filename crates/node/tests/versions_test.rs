@@ -80,3 +80,67 @@ fn parses_volta() {
         }
     );
 }
+
+#[test]
+fn parses_nvmrc() {
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("node-test");
+
+    assert_eq!(
+        plugin.parse_version_file(ParseVersionFileInput {
+            content: "~20".into(),
+            file: ".nvmrc".into(),
+        }),
+        ParseVersionFileOutput {
+            version: Some(UnresolvedVersionSpec::parse("~20").unwrap()),
+        }
+    );
+}
+
+#[test]
+fn parses_nvmrc_with_comment() {
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("node-test");
+
+    assert_eq!(
+        plugin.parse_version_file(ParseVersionFileInput {
+            content: "# comment\n^20.1".into(),
+            file: ".nvmrc".into(),
+        }),
+        ParseVersionFileOutput {
+            version: Some(UnresolvedVersionSpec::parse("^20.1").unwrap()),
+        }
+    );
+}
+
+#[test]
+fn parses_node_version() {
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("node-test");
+
+    assert_eq!(
+        plugin.parse_version_file(ParseVersionFileInput {
+            content: "~20".into(),
+            file: ".node-version".into(),
+        }),
+        ParseVersionFileOutput {
+            version: Some(UnresolvedVersionSpec::parse("~20").unwrap()),
+        }
+    );
+}
+
+#[test]
+fn parses_node_version_with_comment() {
+    let sandbox = create_empty_proto_sandbox();
+    let plugin = sandbox.create_plugin("node-test");
+
+    assert_eq!(
+        plugin.parse_version_file(ParseVersionFileInput {
+            content: "# comment\n^20.1".into(),
+            file: ".node-version".into(),
+        }),
+        ParseVersionFileOutput {
+            version: Some(UnresolvedVersionSpec::parse("^20.1").unwrap()),
+        }
+    );
+}
