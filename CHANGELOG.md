@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.3
+
+#### 🐞 Fixes
+
+- Fixed yarn "latest" alias pointing to the v1 latest, instead of v4 (berry) latest.
+
 ## 0.10.2
 
 #### 🚀 Updates

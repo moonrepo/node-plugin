@@ -112,8 +112,14 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
         for (alias, version) in res.dist_tags {
             let version = Version::parse(&version)?;
 
-            if alias == "latest" && output.latest.is_none() {
+            if alias == "latest" {
                 output.latest = Some(version.clone());
+
+                // The berry alias only exists in the `yarn` package,
+                // but not `@yarnpkg/cli-dist`, so update it here
+                if is_yarn && res.name == "@yarnpkg/cli-dist" {
+                    output.aliases.insert("berry".into(), version.clone());
+                }
             }
 
             output.aliases.entry(alias).or_insert(version);

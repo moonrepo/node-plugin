@@ -11,6 +11,7 @@ pub struct RegistryVersion {
 
 #[derive(Deserialize)]
 pub struct RegistryResponse {
+    pub name: String,
     #[serde(rename = "dist-tags")]
     pub dist_tags: HashMap<String, String>,
     pub versions: HashMap<String, RegistryVersion>,
