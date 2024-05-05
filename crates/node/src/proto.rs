@@ -259,6 +259,7 @@ pub fn post_install(Json(input): Json<InstallHook>) -> FnResult<()> {
 
     if input.pinned {
         args.push("--pin");
+        args.push("global");
     }
 
     let passthrough_args = input
