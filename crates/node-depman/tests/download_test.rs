@@ -153,6 +153,13 @@ mod yarn {
     }
 }
 
+mod yarn2 {
+    use super::*;
+
+    // Special case
+    generate_download_install_tests!("yarn-test", "2.4.3");
+}
+
 mod yarn_berry {
     use super::*;
 
