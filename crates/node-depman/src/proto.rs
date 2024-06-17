@@ -260,8 +260,8 @@ pub fn download_prebuilt(
 
     let package_name = manager.get_package_name(version.to_unresolved_spec());
 
-    let package_without_scope = if package_name.contains('/') {
-        package_name.split('/').nth(1).unwrap()
+    let package_without_scope = if let Some(index) = package_name.find('/') {
+        &package_name[index + 1..]
     } else {
         &package_name
     };

@@ -25,11 +25,25 @@ impl PackageManager {
     }
 
     pub fn get_package_name(&self, version: impl AsRef<UnresolvedVersionSpec>) -> String {
-        if self.is_yarn_berry(version.as_ref()) {
-            "@yarnpkg/cli-dist".into()
-        } else {
-            self.to_string()
+        let version = version.as_ref();
+
+        if matches!(self, PackageManager::Yarn) {
+            if let UnresolvedVersionSpec::Version(inner) = &version {
+                // Version 2.4.3 was published to the wrong package. It should
+                // have been published to `@yarnpkg/cli-dist` but was published
+                // to `yarn`. So... we need to manually fix it.
+                // https://www.npmjs.com/package/yarn?activeTab=versions
+                if inner.major == 2 && inner.minor == 4 && inner.patch == 3 {
+                    return "yarn".into();
+                }
+            }
+
+            if self.is_yarn_berry(version) {
+                return "@yarnpkg/cli-dist".into();
+            }
         }
+
+        self.to_string()
     }
 
     pub fn is_yarn_classic(&self, version: impl AsRef<UnresolvedVersionSpec>) -> bool {
