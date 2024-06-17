@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.2
+
+#### 🐞 Fixes
+
+- Fixed yarn "2.4.3" not resolving or downloading correctly (it was published to the wrong package).
+
 ## 0.11.1
 
 #### 🚀 Updates
