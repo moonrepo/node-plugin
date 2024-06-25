@@ -80,7 +80,7 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
         fetch_url("https://nodejs.org/download/release/index.json")?;
 
     for (index, item) in response.iter().enumerate() {
-        let version = Version::parse(&item.version[1..])?;
+        let version = UnresolvedVersionSpec::parse(&item.version[1..])?;
 
         // First item is always the latest
         if index == 0 {
@@ -101,7 +101,7 @@ pub fn load_versions(Json(_): Json<LoadVersionsInput>) -> FnResult<Json<LoadVers
             }
         }
 
-        output.versions.push(version);
+        output.versions.push(version.to_resolved_spec());
     }
 
     output
@@ -186,10 +186,8 @@ pub fn download_prebuilt(
     let prefix = match env.os {
         HostOS::Linux => format!("node-v{version}-linux-{arch}"),
         HostOS::MacOS => {
-            let parsed_version = match &version {
-                VersionSpec::Version(v) => v.to_owned(),
-                _ => Version::new(20, 0, 0), // Doesn't matter
-            };
+            let m1_compat_version = Version::new(20, 0, 0);
+            let parsed_version = version.as_version().unwrap_or(&m1_compat_version);
 
             // Arm64 support was added after v16, but M1/M2 machines can
             // run x64 binaries via Rosetta. This is a compat hack!
