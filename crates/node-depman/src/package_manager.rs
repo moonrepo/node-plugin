@@ -28,7 +28,7 @@ impl PackageManager {
         let version = version.as_ref();
 
         if matches!(self, PackageManager::Yarn) {
-            if let UnresolvedVersionSpec::Version(inner) = &version {
+            if let UnresolvedVersionSpec::Semantic(inner) = &version {
                 // Version 2.4.3 was published to the wrong package. It should
                 // have been published to `@yarnpkg/cli-dist` but was published
                 // to `yarn`. So... we need to manually fix it.
@@ -50,7 +50,7 @@ impl PackageManager {
         matches!(self, PackageManager::Yarn)
             && match version.as_ref() {
                 UnresolvedVersionSpec::Alias(alias) => alias == "legacy" || alias == "classic",
-                UnresolvedVersionSpec::Version(ver) => ver.major == 1,
+                UnresolvedVersionSpec::Semantic(ver) => ver.major == 1,
                 UnresolvedVersionSpec::Req(req) => req.comparators.iter().any(|c| c.major == 1),
                 _ => false,
             }
@@ -60,7 +60,7 @@ impl PackageManager {
         matches!(self, PackageManager::Yarn)
             && match version.as_ref() {
                 UnresolvedVersionSpec::Alias(alias) => alias == "berry" || alias == "latest",
-                UnresolvedVersionSpec::Version(ver) => ver.major > 1,
+                UnresolvedVersionSpec::Semantic(ver) => ver.major > 1,
                 UnresolvedVersionSpec::Req(req) => req.comparators.iter().any(|c| c.major > 1),
                 _ => false,
             }

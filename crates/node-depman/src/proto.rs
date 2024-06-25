@@ -105,12 +105,12 @@ pub fn load_versions(Json(input): Json<LoadVersionsInput>) -> FnResult<Json<Load
         let res = parse_registry_response(res, is_yarn)?;
 
         for item in res.versions.values() {
-            output.versions.push(Version::parse(&item.version)?);
+            output.versions.push(VersionSpec::parse(&item.version)?);
         }
 
         // Dist tags always includes latest
         for (alias, version) in res.dist_tags {
-            let version = Version::parse(&version)?;
+            let version = UnresolvedVersionSpec::parse(&version)?;
 
             if alias == "latest" {
                 output.latest = Some(version.clone());
@@ -233,7 +233,7 @@ pub fn resolve_version(
 
 fn get_archive_prefix(manager: &PackageManager, spec: &VersionSpec) -> String {
     if manager.is_yarn_classic(spec.to_unresolved_spec()) {
-        if let VersionSpec::Version(version) = spec {
+        if let Some(version) = spec.as_version() {
             // Prefix changed to "package" in v1.22.20
             // https://github.com/yarnpkg/yarn/releases/tag/v1.22.20
             if version.minor <= 22 && version.patch <= 19 {

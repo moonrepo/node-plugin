@@ -198,8 +198,8 @@ mod yarn {
     generate_resolve_versions_tests!("yarn-test", {
         "1" => "1.22.22",
         "2" => "2.4.3",
-        "3" => "3.8.2",
-        "berry" => "4.3.0",
+        "3" => "3.8.3",
+        "berry" => "4.3.1",
     });
 
     #[test]
