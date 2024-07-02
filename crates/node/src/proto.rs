@@ -228,6 +228,11 @@ pub fn locate_executables(
     let env = get_host_environment()?;
 
     Ok(Json(LocateExecutablesOutput {
+        exes_dir: Some(if env.os == HostOS::Windows {
+            ".".into()
+        } else {
+            "bin".into()
+        }),
         globals_lookup_dirs: vec!["$PROTO_HOME/tools/node/globals/bin".into()],
         primary: Some(ExecutableConfig::new(if env.os == HostOS::Windows {
             format!("{}.exe", BIN)
