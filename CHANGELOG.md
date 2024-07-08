@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.5
+
+#### 🐞 Fixes
+
+- Fixed version parsing for versions that contain `.x`.
+
 ## 0.11.4
 
 #### 🚀 Updates
