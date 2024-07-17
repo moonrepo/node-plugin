@@ -1,3 +1,5 @@
+> # Migrated to a new repository: https://github.com/moonrepo/tools
+
 # Node.js ecosystem plugins
 
 Node.js, npm, pnpm, and yarn WASM plugins for [proto](https://github.com/moonrepo/proto).
